@@ -4,7 +4,7 @@
 
 This framework uses two very known (or should be at least) js libs:
 
-**License**
+**License:**
 
 * Templater.js, version 1.0-alpha
 * Copyright 2016, Giordano Bruno Lazzareschi
