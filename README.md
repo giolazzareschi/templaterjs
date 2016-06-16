@@ -1,4 +1,4 @@
-# Templater JS
+# Templater.js
 
 #### Micro javascript lib to create base components or scalable frontend lifecycle.
 
