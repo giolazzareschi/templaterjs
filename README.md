@@ -17,7 +17,7 @@ So, basicaly this framework uses this above libs to create a simple pattern to d
 * Create a simple .html file structure
 * Add this line in head or body
 ``` html
-<script src="paths/maybemorepaths/templater.js.min" />
+<script src="paths/maybemorepaths/templater.min.js" />
 ```
 
 **Very basic example:**
