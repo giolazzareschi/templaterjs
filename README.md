@@ -15,7 +15,10 @@ So, basicaly this framework uses this above libs to create a simple pattern to d
 **Instalation:**
 
 * Create a simple .html file structure
-* <script src="paths/maybemorepaths/templater.js.min" />
+* Add this line in head or body
+``` html
+<script src="paths/maybemorepaths/templater.js.min" />
+```
 
 **Very basic example:**
 Well, better than explain is execute:
