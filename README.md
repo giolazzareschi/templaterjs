@@ -2,14 +2,14 @@
 
 #### Micro javascript lib to create base components or scalable frontend lifecycle.
 
-This framework uses two very known (or should be at least) js libs:
-
 **License:**
 
 * Templater.js, version 1.0-alpha
 * Copyright 2016, Giordano Bruno Lazzareschi
 * Github: https://github.com/giolazzareschi/templaterjs
 * License: http://www.opensource.org/licenses/mit-license.php
+
+This framework uses two very known (or should be at least) js libs:
 
 **Dependencies:**
 * Dean Edwards "Base.js" - http://dean.edwards.name/weblog/2006/03/base/
