@@ -24,32 +24,35 @@ So, basicaly this framework uses this above libs to create a simple pattern to d
 Well, better than explain is execute:
 
 ```javascript:
-  var Hello = Templater.extend({
+  var Hello = Templater.extend({ // Create a class thaat inherits from Templater. Basic Base.js syntax here.
   
-    template_data : {
-      username : 'Default username'
+    template_data : { // "templater_data" is where you put structured data to be renderd in the "template" string.
+      username : 'Default username' // a data.
     },
   
-    events : {
-      'click #main_message' : function(){
-        console.log( this, this.elements );
+    events : { // "events" api. First argument is the event, from second is the selector.
+      'click #main_message' : function(){ // "click" then "selector". 
+        console.log( this, this.elements ); // "this" is the class instance (Hello in this example).
       }
     },
   
-    template : '' +
-      '<div>' +
-        '<h1 id="main_message">Hey {{username}}.</h1>'+
+    template : '' + // the page template to be rendered.
+      '<div>' + // ALWAYS START WITH A DIV wrapping all stuff around.
+        '<h1 id="main_message">Hey {{username}}.</h1>'+ // The stuff. All elements with "id" attr will be mapped in "this.elements"
       '</div>'
   });
   
-  var hello = new Hello();
+  var hello = new Hello(); // Create an hello object. 
   
-  hello.render( document.body );
-  setTimeout( function(){ 
-    hello.template_data = {
-      username : 'New name here pls'
+  hello.render( document.body ); // Render the object in somewhere. In this case, the document.body
+  
+  setTimeout( function(){ // just for testing purposes, after 5 secs repaint something.
+  
+    hello.template_data = { // change the template data on the fly.
+      username : 'New name here pls' // data being changed on the fly.
     };
     
-    hello.repaint();
+    hello.repaint(); // repaint template.
+    
   },5000);
 ````
