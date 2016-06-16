@@ -8,7 +8,7 @@ This framework uses two very known (or should be at least) js libs:
 * Dean Edwards "Base.js" - http://dean.edwards.name/weblog/2006/03/base/
 * Handlebars (currently @4.0.5) - http://handlebarsjs.com/
 
-Templater.js ships the minified version on both above script already. But you can donwload them separately, but it'll just works if you include them properly on your project context.
+Templater.js ships the minified version of both above script already. But you can donwload them separately, but it'll just works if you include them properly on your project context.
 
 So, basicaly this framework uses this above libs to create a simple pattern to develop frontend. But the main focus is reduce the most we can browser memory usage. Shortly, what it does is store the DOM objects one time and try reuse it along the app lifecicle, reducing a lof of js recreation/garbage collection and worring just with repainting/re-rendering.
 
