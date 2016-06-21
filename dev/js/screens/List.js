@@ -1,20 +1,22 @@
 var List = Templater.extend({
 
+	type : 'List',
+
 	autopaint : true,
 
 	binds : function(){
 
 	},
 
-	template : '' +
-		'<div class="list-wrapper">'+
-			'<div id="list_items">{{name}}</div>'+
-			'<input value="{{name}}" />'+
-			'<select>'+
-				'{{#each phones}}'+
-					'<option>{{this}}</option>'+
-				'{{/each}}'+
-			'</select>'+
-		'</div>'
+	template : '' +		
+		'<ul class="list-wrapper">'+
+		'{{#each pizzas}}'+
+			'<ul>'+
+			'{{#each flavours}}'+
+				'<li><span>{{this}}</span></li>'+
+			'{{/each}}'+
+			'</ul>'+
+		'{{/each}}'+
+		'</ul>'
 
 });

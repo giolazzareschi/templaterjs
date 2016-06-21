@@ -2,12 +2,13 @@
   "devDependencies": {
     "grunt": "^1.0.1",
     "grunt-cli": "^1.2.0",
+    "grunt-contrib-concat": "^1.0.1",
     "grunt-contrib-cssmin": "^1.0.1",
     "grunt-contrib-stylus": "^1.2.0",
     "grunt-contrib-uglify": "^1.0.1",
-    "stylus": "^0.54.2",
-    "hapi" : "^13.4.1",
-    "inert" : "^4.0.0",
-    "path" : "^0.12.7"
+    "hapi": "^13.4.1",
+    "inert": "^4.0.0",
+    "path": "^0.12.7",
+    "stylus": "^0.54.2"
   }
 }
