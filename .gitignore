@@ -1,0 +1,11 @@
+node_modules/
+passenger.log
+passenger.pid
+passenger.pid.lock
+passenger.2000.log
+passenger.2000.pid
+passenger.2000.pid.lock
+passenger.3000.log
+passenger.3000.pid
+passenger.3000.pid.lock
+npm-debug.log
