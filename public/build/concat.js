@@ -853,6 +853,7 @@ function start_app(){
 	template_data = { 
 		pizzas : [
 			{flavours: [57,56,63]},
+			{flavours: [57,56,63]}
 		]
 	};
 
@@ -956,12 +957,14 @@ function start_app(){
 	deep : function( root, root_type, root_label ){
 
 		for( pp in root ){
-			var el = root[ pp ], type_array = this.isarray( el ), type_object = this.isobject( el ), end = root_label + root_type + pp, type = type_array || type_object;
+			var el = root[ pp ], type_array = this.isarray( el ), 
+			type_object = this.isobject( el ), end = root_label + root_type + pp, 
+			type = type_array || type_object, react = this.template_data[ pp ];
 			
 			if( type ){
 				
-				if( type_array )
-					this.lists[ end ] = el;
+				if( type_array && react)
+					this.lists[ end ] = react; 
 
 				end += this.deep( el, type, end );
 			}else{
@@ -1090,6 +1093,12 @@ function start_app(){
 			template_data : this.template_data,
 			dom : this.dom
 		});
+
+		this.watch();
+	},
+
+	watch : function(){
+		
 	},
 
 	constructor : function( args ){
@@ -1266,15 +1275,28 @@ function start_app(){
 
 	},
 
+	reactions : {
+		pizzas : function(){
+			console.log( this );
+		}
+	},
+
 	template : '' +		
 		'<ul class="list-wrapper">'+
+		
 		'{{#each pizzas}}'+
-			'<ul>'+
-			'{{#each flavours}}'+
-				'<li><span>{{this}}</span></li>'+
-			'{{/each}}'+
-			'</ul>'+
+			'<div>'+
+				'<label>Flavours:</label>'+
+				'<ul>'+
+				'{{#each flavours}}'+
+					'<li>'+
+						'<span>{{this}}</span>'+
+					'</li>'+
+				'{{/each}}'+
+				'</ul>'+
+			'</div>'+
 		'{{/each}}'+
+		
 		'</ul>'
 
 });

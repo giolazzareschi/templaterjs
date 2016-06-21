@@ -31,6 +31,12 @@ var Templater = Base.extend({
 			template_data : this.template_data,
 			dom : this.dom
 		});
+
+		this.watch();
+	},
+
+	watch : function(){
+		
 	},
 
 	constructor : function( args ){

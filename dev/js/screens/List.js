@@ -8,15 +8,28 @@ var List = Templater.extend({
 
 	},
 
+	reactions : {
+		pizzas : function(){
+			console.log( this );
+		}
+	},
+
 	template : '' +		
 		'<ul class="list-wrapper">'+
+		
 		'{{#each pizzas}}'+
-			'<ul>'+
-			'{{#each flavours}}'+
-				'<li><span>{{this}}</span></li>'+
-			'{{/each}}'+
-			'</ul>'+
+			'<div>'+
+				'<label>Flavours:</label>'+
+				'<ul>'+
+				'{{#each flavours}}'+
+					'<li>'+
+						'<span>{{this}}</span>'+
+					'</li>'+
+				'{{/each}}'+
+				'</ul>'+
+			'</div>'+
 		'{{/each}}'+
+		
 		'</ul>'
 
 });

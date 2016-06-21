@@ -46,12 +46,14 @@ var Binder = Base.extend({
 	deep : function( root, root_type, root_label ){
 
 		for( pp in root ){
-			var el = root[ pp ], type_array = this.isarray( el ), type_object = this.isobject( el ), end = root_label + root_type + pp, type = type_array || type_object;
+			var el = root[ pp ], type_array = this.isarray( el ), 
+			type_object = this.isobject( el ), end = root_label + root_type + pp, 
+			type = type_array || type_object, react = this.template_data[ pp ];
 			
 			if( type ){
 				
-				if( type_array )
-					this.lists[ end ] = el;
+				if( type_array && react)
+					this.lists[ end ] = react; 
 
 				end += this.deep( el, type, end );
 			}else{

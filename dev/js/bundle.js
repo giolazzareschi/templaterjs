@@ -8,6 +8,7 @@ function start_app(){
 	template_data = { 
 		pizzas : [
 			{flavours: [57,56,63]},
+			{flavours: [57,56,63]}
 		]
 	};
 
