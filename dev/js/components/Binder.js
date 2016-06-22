@@ -10,6 +10,8 @@ var Binder = Base.extend({
 
 	dom : undefined,
 
+	ends : [],
+
 	constructor : function( args ){
 
 		if( args && args.template_data )
@@ -32,7 +34,7 @@ var Binder = Base.extend({
 	 
 	    var temp = obj.constructor();
 	    for (var key in obj)
-	        temp[key] = cloneObject(obj[key]);
+	        temp[key] = this.cloneObject(obj[key]);
 	 
 	    return temp;		
 	},
@@ -40,25 +42,25 @@ var Binder = Base.extend({
 	deep : function( root, root_type, root_label ){
 
 		for( pp in root ){
-			var el = root[ pp ], type = isarray( el ) || isobject( el ), end = root_label + root_type + pp;
+			var el = root[ pp ], type = this.isArray( el ) || this.isObject( el ), end = root_label + root_type + pp;
 			
 			if( type ){
-				end += deep( el, type, end );
+				end += this.deep( el, type, end );
 			}else{
-				ends[ end ] = el;
+				this.ends[ end ] = el;
 				root[ pp ] = end;
 			}
 		}
 
-		return ends;
+		return this.ends;
 	},
 
-	isString : function( ob ){
-		return ob.constructor.prototype == "".constructor.prototype || typeof ob === "number";
+	isObject : function( ob ){
+		return ob.constructor.prototype == {}.constructor.prototype ? "." : "";
 	},
 
 	isArray : function( ob ){
-		return ob.constructor.prototype == [].constructor.prototype;
+		return ob.constructor.prototype == [].constructor.prototype ? "_" : "";
 	},
 
 	track : function(){
