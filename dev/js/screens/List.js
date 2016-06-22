@@ -10,7 +10,10 @@ var List = Templater.extend({
 
 	reactions : {
 		pizzas : function(){
-			console.log( this );
+			
+		},
+		flavours : function(){
+			
 		}
 	},
 
@@ -23,7 +26,7 @@ var List = Templater.extend({
 				'<ul>'+
 				'{{#each flavours}}'+
 					'<li>'+
-						'<span>{{this}}</span>'+
+						'<span><input value="{{this}}" /></span>'+
 					'</li>'+
 				'{{/each}}'+
 				'</ul>'+

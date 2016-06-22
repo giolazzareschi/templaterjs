@@ -256,7 +256,7 @@
 		 * Gets aggregate text within subject node
 		 */
 		getAggregateText: function() {
-			
+
 			var elementFilter = this.options.filterElements;
 			var forceContext = this.options.forceContext;
 
@@ -455,7 +455,7 @@
 			) {
 				return '';
 			}
-			string = string.replace(/\$(\d+|&|`|')/g, function($0, t) {
+			string = String(string).replace(/\$(\d+|&|`|')/g, function($0, t) {
 				var replacement;
 				switch(t) {
 					case '&':

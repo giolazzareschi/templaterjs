@@ -36,7 +36,54 @@ var Templater = Base.extend({
 	},
 
 	watch : function(){
-		
+		setInterval( this.changes.bind(this), 60 );
+	},
+
+	changes : function(){
+		if( JSON.stringify( this.template_data ) !== JSON.stringify( this.binder.template_main ) ){
+			this.deepfind( this.template_data, null, "", "" );
+		}
+	},
+
+	deepfind : function( where, binder_temp, token, root_label ){
+		if( token === undefined ) token = "";
+
+		var binder = this.binder;		
+
+		for( var p in where ){
+			var original = where[ p ],
+			clean = binder.isarray( original ) || binder.isobject( original ), 
+			track = token + p + clean;
+
+			if( !clean ){
+				if( original !== binder_temp[ p ] ){
+
+					var dom = this.binder.template_hdom[track][0];
+
+					dom.textContent ? dom.textContent = original : dom.value = original;
+
+					this.react({
+						changed : p,
+						where : root_label,
+						dom : dom
+					});
+
+					binder.template_main = binder.cloneObject( this.template_data );
+
+					break;
+				}
+			}else{
+				this.deepfind( original, binder_temp ? binder_temp[p] : binder.template_main[p], track, p );
+			}
+		}
+
+		return {};
+	},
+
+	react : function( data ){
+		var to = (function(){})() || this.reactions[ data.where ];
+
+		to.apply( this, [data.dom, data.where] );
 	},
 
 	constructor : function( args ){

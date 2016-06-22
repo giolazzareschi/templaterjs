@@ -396,7 +396,7 @@ Base = Base.extend({
 		 * Gets aggregate text within subject node
 		 */
 		getAggregateText: function() {
-			
+
 			var elementFilter = this.options.filterElements;
 			var forceContext = this.options.forceContext;
 
@@ -595,7 +595,7 @@ Base = Base.extend({
 			) {
 				return '';
 			}
-			string = string.replace(/\$(\d+|&|`|')/g, function($0, t) {
+			string = String(string).replace(/\$(\d+|&|`|')/g, function($0, t) {
 				var replacement;
 				switch(t) {
 					case '&':
@@ -913,11 +913,15 @@ function start_app(){
 
 	template_data : {},
 
+	template_main : {},
+
 	template_memo : {},
 
 	template_hash : {},
 
 	template_hdom : {},
+
+	mutation_hash : {},
 
 	dom : undefined,
 
@@ -936,6 +940,8 @@ function start_app(){
 			this.dom = args.dom;
 
 		this.template_memo = this.cloneObject( this.template_data );
+
+		this.template_main = this.cloneObject( this.template_data );
 
 		this.template_hash = this.deep( this.template_memo, "", "" );
 
@@ -968,7 +974,7 @@ function start_app(){
 
 				end += this.deep( el, type, end );
 			}else{
-				this.ends[ end ] = String(el);
+				this.ends[ end ] = el;
 				root[ pp ] = end;
 			}
 		}
@@ -989,8 +995,10 @@ function start_app(){
 
 		for( var i=1, qt = indexes.length; i < qt; i++ ){			
 			last = last[ indexes[ i ] ];
-			if( i === dlast )
+			if( i === dlast ){
+				data.array_index = i-1;
 				data.parent = last;
+			}
 		}
 
 		data.data = last;
@@ -1015,6 +1023,8 @@ function start_app(){
 				this.template_hdom[ index ] = finds.doms;
 			}
 
+			this.mutationdom( this.template_hdom[ index ], index );
+
 			this.template_hdom[ index ].forEach(function(el){
 				if( el.$$templater === undefined ){
 					el.$$templater = index;
@@ -1035,15 +1045,53 @@ function start_app(){
 				
 				input.$$templater = hash;
 
-				if( hdom !== undefined ){
-					this.template_hdom[ hash ].push( input );
+				if( hdom !== undefined ){					
+					this.template_hdom[ hash ] = this.template_hdom[ hash ].concat( input );
 				}else{
 					this.template_hdom[ hash ] = [input];
 				}
 
+				this.mutationinput( this.template_hdom[ hash ], hash );
+
 				input.value = this.template_hash[ label ];
 			}
 		}
+	},
+
+	mutationdom : function( doms, hash ){
+		var i = 0, qt = doms.length;
+
+		for( ; i < qt ; i++ ){
+			var dom = doms[ i ];
+
+			var observer = new MutationObserver(function(mutations) {
+				mutations.forEach(function(mutation) {
+					console.log(mutation);
+				});    
+			});
+
+			var config = { attributes: true, childList: true, characterData: true };
+
+			observer.observe(dom, config);
+
+			this.mutation_hash[ hash ] = observer;
+		}
+		 
+	},
+
+	mutationinput : function( doms, hash ){
+		var i = 0, qt = doms.length, me = this;
+
+		for( ; i < qt ; i++ ){
+			var dom = doms[ i ];
+
+			dom.addEventListener('change', function( e ){				
+				var el = e.srcElement || e.target, data = me.get_data( el.$$templater );
+
+				data.parent[ data.array_index ] = el.value;
+			});
+		}
+		 
 	}
 
 });;var Router = Base.extend({
@@ -1098,7 +1146,54 @@ function start_app(){
 	},
 
 	watch : function(){
-		
+		setInterval( this.changes.bind(this), 60 );
+	},
+
+	changes : function(){
+		if( JSON.stringify( this.template_data ) !== JSON.stringify( this.binder.template_main ) ){
+			this.deepfind( this.template_data, null, "", "" );
+		}
+	},
+
+	deepfind : function( where, binder_temp, token, root_label ){
+		if( token === undefined ) token = "";
+
+		var binder = this.binder;		
+
+		for( var p in where ){
+			var original = where[ p ],
+			clean = binder.isarray( original ) || binder.isobject( original ), 
+			track = token + p + clean;
+
+			if( !clean ){
+				if( original !== binder_temp[ p ] ){
+
+					var dom = this.binder.template_hdom[track][0];
+
+					dom.textContent ? dom.textContent = original : dom.value = original;
+
+					this.react({
+						changed : p,
+						where : root_label,
+						dom : dom
+					});
+
+					binder.template_main = binder.cloneObject( this.template_data );
+
+					break;
+				}
+			}else{
+				this.deepfind( original, binder_temp ? binder_temp[p] : binder.template_main[p], track, p );
+			}
+		}
+
+		return {};
+	},
+
+	react : function( data ){
+		var to = (function(){})() || this.reactions[ data.where ];
+
+		to.apply( this, [data.dom, data.where] );
 	},
 
 	constructor : function( args ){
@@ -1277,7 +1372,10 @@ function start_app(){
 
 	reactions : {
 		pizzas : function(){
-			console.log( this );
+			
+		},
+		flavours : function(){
+			
 		}
 	},
 
@@ -1290,7 +1388,7 @@ function start_app(){
 				'<ul>'+
 				'{{#each flavours}}'+
 					'<li>'+
-						'<span>{{this}}</span>'+
+						'<span><input value="{{this}}" /></span>'+
 					'</li>'+
 				'{{/each}}'+
 				'</ul>'+

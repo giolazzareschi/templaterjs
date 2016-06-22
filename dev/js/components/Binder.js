@@ -2,11 +2,15 @@ var Binder = Base.extend({
 
 	template_data : {},
 
+	template_main : {},
+
 	template_memo : {},
 
 	template_hash : {},
 
 	template_hdom : {},
+
+	mutation_hash : {},
 
 	dom : undefined,
 
@@ -25,6 +29,8 @@ var Binder = Base.extend({
 			this.dom = args.dom;
 
 		this.template_memo = this.cloneObject( this.template_data );
+
+		this.template_main = this.cloneObject( this.template_data );
 
 		this.template_hash = this.deep( this.template_memo, "", "" );
 
@@ -57,7 +63,7 @@ var Binder = Base.extend({
 
 				end += this.deep( el, type, end );
 			}else{
-				this.ends[ end ] = String(el);
+				this.ends[ end ] = el;
 				root[ pp ] = end;
 			}
 		}
@@ -78,8 +84,10 @@ var Binder = Base.extend({
 
 		for( var i=1, qt = indexes.length; i < qt; i++ ){			
 			last = last[ indexes[ i ] ];
-			if( i === dlast )
+			if( i === dlast ){
+				data.array_index = i-1;
 				data.parent = last;
+			}
 		}
 
 		data.data = last;
@@ -104,6 +112,8 @@ var Binder = Base.extend({
 				this.template_hdom[ index ] = finds.doms;
 			}
 
+			this.mutationdom( this.template_hdom[ index ], index );
+
 			this.template_hdom[ index ].forEach(function(el){
 				if( el.$$templater === undefined ){
 					el.$$templater = index;
@@ -124,15 +134,53 @@ var Binder = Base.extend({
 				
 				input.$$templater = hash;
 
-				if( hdom !== undefined ){
-					this.template_hdom[ hash ].push( input );
+				if( hdom !== undefined ){					
+					this.template_hdom[ hash ] = this.template_hdom[ hash ].concat( input );
 				}else{
 					this.template_hdom[ hash ] = [input];
 				}
 
+				this.mutationinput( this.template_hdom[ hash ], hash );
+
 				input.value = this.template_hash[ label ];
 			}
 		}
+	},
+
+	mutationdom : function( doms, hash ){
+		var i = 0, qt = doms.length;
+
+		for( ; i < qt ; i++ ){
+			var dom = doms[ i ];
+
+			var observer = new MutationObserver(function(mutations) {
+				mutations.forEach(function(mutation) {
+					console.log(mutation);
+				});    
+			});
+
+			var config = { attributes: true, childList: true, characterData: true };
+
+			observer.observe(dom, config);
+
+			this.mutation_hash[ hash ] = observer;
+		}
+		 
+	},
+
+	mutationinput : function( doms, hash ){
+		var i = 0, qt = doms.length, me = this;
+
+		for( ; i < qt ; i++ ){
+			var dom = doms[ i ];
+
+			dom.addEventListener('change', function( e ){				
+				var el = e.srcElement || e.target, data = me.get_data( el.$$templater );
+
+				data.parent[ data.array_index ] = el.value;
+			});
+		}
+		 
 	}
 
 });
