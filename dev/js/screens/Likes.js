@@ -4,10 +4,15 @@ var Likes = Templater.extend({
 
 	autopaint : true,
 
+	events : {
+		'click #btnlike' : function(){
+			++this.template_data.counter;
+		}
+	},
+
 	template : '' +
-		'<div>'+
-			'<label>Likes</label>'+
-			'<span>{{counter}}</span>'+
+		'<div class="btn-like-wrapper">'+
+			'<button id="btnlike">Likes : (<label>{{counter}}</label>)</button>'+			
 		'<div>'
 
 });

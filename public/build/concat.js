@@ -849,6 +849,7 @@ d.push(e),this.push(this.source.functionCall("container.invokePartial","",d))},a
 window.$list;
 window.template_data;
 function start_app(){
+	// var x = performance.now();
 
 	template_data = { 
 		pizzas : [
@@ -862,6 +863,8 @@ function start_app(){
 	});
 
 	$list.render( document.querySelector('#entry_point') );
+
+	// console.log(performance.now() - x);
 };;var Ajax = Base.extend({
 
 	xhr : undefined,
@@ -990,22 +993,6 @@ function start_app(){
 		return ob.constructor.prototype === [].constructor.prototype ? "_" : "";
 	},
 
-	get_data : function( index_track ){
-		var indexes = index_track.split(/[\.]|\_/), last = this.template_data[ indexes[ 0 ] ], data = {}, dlast = indexes.length-2;
-
-		for( var i=1, qt = indexes.length; i < qt; i++ ){			
-			last = last[ indexes[ i ] ];
-			if( i === dlast ){
-				data.array_index = i-1;
-				data.parent = last;
-			}
-		}
-
-		data.data = last;
-
-		return data;
-	},
-
 	track : function(){
 		for( index in this.template_hash ){
 			var hash = this.template_hash[ index ],
@@ -1079,6 +1066,25 @@ function start_app(){
 		 
 	},
 
+	set_data : function( index_track, value ){
+		var el = this.get_data( index_track );
+
+		el.data[ el.index ] = value;
+	},
+
+	get_data : function( index_track ){
+		var indexes = index_track.split(/[\.]|\_/), data, count=1, end = indexes.length, index;
+
+		for(var i in indexes){
+			if( count++ < end )
+				data = !data ? this.template_data[ indexes[ i ] ] : data[ indexes [ i ] ];			
+
+			index = indexes[ i ];
+		}
+
+		return {data :data, index : index};
+	},
+
 	mutationinput : function( doms, hash ){
 		var i = 0, qt = doms.length, me = this;
 
@@ -1086,9 +1092,9 @@ function start_app(){
 			var dom = doms[ i ];
 
 			dom.addEventListener('change', function( e ){				
-				var el = e.srcElement || e.target, data = me.get_data( el.$$templater );
+				var el = e.srcElement || e.target
 
-				data.parent[ data.array_index ] = el.value;
+				me.set_data( el.$$templater, el.value );
 			});
 		}
 		 
@@ -1187,7 +1193,7 @@ function start_app(){
 					break;
 				}
 			}else{
-				this.deepfind( original, binder_temp, track, p );
+				this.deepfind( original, binder_temp ? binder_temp : binder.template_main[p], track, p );
 			}
 		}
 
@@ -1374,10 +1380,15 @@ function start_app(){
 
 	autopaint : true,
 
+	events : {
+		'click #btnlike' : function(){
+			++this.template_data.counter;
+		}
+	},
+
 	template : '' +
-		'<div>'+
-			'<label>Likes</label>'+
-			'<span>{{counter}}</span>'+
+		'<div class="btn-like-wrapper">'+
+			'<button id="btnlike">Likes : (<label>{{counter}}</label>)</button>'+			
 		'<div>'
 
 });;var List = Templater.extend({
@@ -1405,21 +1416,13 @@ function start_app(){
 		}
 	},
 
-	events : {
-		'click #thechanger' : function(e){
-			++this.likes.template_data.counter;
-		}
-	},
-
 	template : '' +		
 		'<ul class="list-wrapper">'+
-		
-		'<button id="thechanger">The Changer</button>'+
 		
 		'<div id="likes_wrapper"></div>' +
 
 		'{{#each pizzas}}'+
-			'<div>'+
+			'<div class="todo-list">'+
 				'<label>Flavours:</label>'+
 				'<ul>'+
 				'{{#each flavours}}'+

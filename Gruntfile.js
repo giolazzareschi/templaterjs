@@ -45,6 +45,22 @@ module.exports = function(grunt){
 				src: ['dev/js/**/*.js'],
 				dest: 'public/build/concat.js',
 			},
+		},
+		watch: {
+			scripts: {
+				files: ['dev/js/**/*.js'],
+				tasks: ['concat'],
+				options: {
+					spawn: false,
+				},
+			},
+			css: {
+				files: ['dev/styl/**/*.styl'],
+				tasks: ['stylus','cssmin'],
+				options: {
+					spawn: false,
+				},
+			}
 		},		
 	});
 
@@ -52,7 +68,9 @@ module.exports = function(grunt){
 	grunt.loadNpmTasks('grunt-contrib-cssmin');
 	grunt.loadNpmTasks('grunt-contrib-uglify');
 	grunt.loadNpmTasks('grunt-contrib-concat');
+	grunt.loadNpmTasks('grunt-contrib-watch');
 
 	grunt.registerTask('default', ['stylus','cssmin','uglify']);	
-	grunt.registerTask('dev', ['stylus','cssmin','concat']);	
+	grunt.registerTask('dev', ['stylus','cssmin','concat']);
+	grunt.registerTask('wdev', ['watch']);
 };

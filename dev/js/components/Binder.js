@@ -79,22 +79,6 @@ var Binder = Base.extend({
 		return ob.constructor.prototype === [].constructor.prototype ? "_" : "";
 	},
 
-	get_data : function( index_track ){
-		var indexes = index_track.split(/[\.]|\_/), last = this.template_data[ indexes[ 0 ] ], data = {}, dlast = indexes.length-2;
-
-		for( var i=1, qt = indexes.length; i < qt; i++ ){			
-			last = last[ indexes[ i ] ];
-			if( i === dlast ){
-				data.array_index = i-1;
-				data.parent = last;
-			}
-		}
-
-		data.data = last;
-
-		return data;
-	},
-
 	track : function(){
 		for( index in this.template_hash ){
 			var hash = this.template_hash[ index ],
@@ -168,6 +152,25 @@ var Binder = Base.extend({
 		 
 	},
 
+	set_data : function( index_track, value ){
+		var el = this.get_data( index_track );
+
+		el.data[ el.index ] = value;
+	},
+
+	get_data : function( index_track ){
+		var indexes = index_track.split(/[\.]|\_/), data, count=1, end = indexes.length, index;
+
+		for(var i in indexes){
+			if( count++ < end )
+				data = !data ? this.template_data[ indexes[ i ] ] : data[ indexes [ i ] ];			
+
+			index = indexes[ i ];
+		}
+
+		return {data :data, index : index};
+	},
+
 	mutationinput : function( doms, hash ){
 		var i = 0, qt = doms.length, me = this;
 
@@ -175,9 +178,9 @@ var Binder = Base.extend({
 			var dom = doms[ i ];
 
 			dom.addEventListener('change', function( e ){				
-				var el = e.srcElement || e.target, data = me.get_data( el.$$templater );
+				var el = e.srcElement || e.target
 
-				data.parent[ data.array_index ] = el.value;
+				me.set_data( el.$$templater, el.value );
 			});
 		}
 		 

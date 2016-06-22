@@ -23,21 +23,13 @@ var List = Templater.extend({
 		}
 	},
 
-	events : {
-		'click #thechanger' : function(e){
-			++this.likes.template_data.counter;
-		}
-	},
-
 	template : '' +		
 		'<ul class="list-wrapper">'+
-		
-		'<button id="thechanger">The Changer</button>'+
 		
 		'<div id="likes_wrapper"></div>' +
 
 		'{{#each pizzas}}'+
-			'<div>'+
+			'<div class="todo-list">'+
 				'<label>Flavours:</label>'+
 				'<ul>'+
 				'{{#each flavours}}'+

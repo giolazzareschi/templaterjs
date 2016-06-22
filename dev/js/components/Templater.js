@@ -77,7 +77,7 @@ var Templater = Base.extend({
 					break;
 				}
 			}else{
-				this.deepfind( original, binder_temp, track, p );
+				this.deepfind( original, binder_temp ? binder_temp : binder.template_main[p], track, p );
 			}
 		}
 

@@ -4,6 +4,7 @@ if (document.addEventListener)
 window.$list;
 window.template_data;
 function start_app(){
+	// var x = performance.now();
 
 	template_data = { 
 		pizzas : [
@@ -17,4 +18,6 @@ function start_app(){
 	});
 
 	$list.render( document.querySelector('#entry_point') );
+
+	// console.log(performance.now() - x);
 };
