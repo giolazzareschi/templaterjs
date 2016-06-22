@@ -197,14 +197,14 @@
 			var matches = [];
 			var self = this;
 
-			regex = typeof regex === 'string' ? RegExp(escapeRegExp(regex), 'g') : regex;
-
+			regex = typeof regex === 'string' ? RegExp(escapeRegExp(regex)) : regex;
+			
 			matchAggregation(textAggregation);
 
 			function matchAggregation(textAggregation) {
 				for (var i = 0, l = textAggregation.length; i < l; ++i) {
 
-					var text = textAggregation[i];
+					var text = textAggregation[i];						
 
 					if (typeof text !== 'string') {
 						// Deal with nested contexts: (recursive)
@@ -217,6 +217,12 @@
 							matches.push(self.prepMatch(match, matchIndex++, offset));
 						}
 					} else {
+						// console.log( '0000' );
+						// console.log( text );
+						// console.log( regex );
+						// console.log( text.match(regex) );
+						// console.log( '0000' );
+
 						if (match = text.match(regex)) {
 							matches.push(self.prepMatch(match, 0, offset));
 						}
@@ -250,7 +256,7 @@
 		 * Gets aggregate text within subject node
 		 */
 		getAggregateText: function() {
-
+			
 			var elementFilter = this.options.filterElements;
 			var forceContext = this.options.forceContext;
 

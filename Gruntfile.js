@@ -36,12 +36,23 @@ module.exports = function(grunt){
 					'public/build/min.js': ['dev/js/**/*.js']
 				}
 			}
-		}
+		},
+		concat: {
+			options: {
+				separator: ';',
+			},
+			dist: {
+				src: ['dev/js/**/*.js'],
+				dest: 'public/build/concat.js',
+			},
+		},		
 	});
 
 	grunt.loadNpmTasks('grunt-contrib-stylus');
 	grunt.loadNpmTasks('grunt-contrib-cssmin');
 	grunt.loadNpmTasks('grunt-contrib-uglify');
+	grunt.loadNpmTasks('grunt-contrib-concat');
 
 	grunt.registerTask('default', ['stylus','cssmin','uglify']);	
+	grunt.registerTask('dev', ['stylus','cssmin','concat']);	
 };

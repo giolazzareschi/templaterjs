@@ -10,7 +10,11 @@ var Binder = Base.extend({
 
 	dom : undefined,
 
-	ends : [],
+	ends : {},
+
+	lists : {},
+
+	observers : [],
 
 	constructor : function( args ){
 
@@ -42,12 +46,18 @@ var Binder = Base.extend({
 	deep : function( root, root_type, root_label ){
 
 		for( pp in root ){
-			var el = root[ pp ], type = this.isArray( el ) || this.isObject( el ), end = root_label + root_type + pp;
+			var el = root[ pp ], type_array = this.isarray( el ), 
+			type_object = this.isobject( el ), end = root_label + root_type + pp, 
+			type = type_array || type_object, react = this.template_data[ pp ];
 			
 			if( type ){
+				
+				if( type_array && react)
+					this.lists[ end ] = react; 
+
 				end += this.deep( el, type, end );
 			}else{
-				this.ends[ end ] = el;
+				this.ends[ end ] = String(el);
 				root[ pp ] = end;
 			}
 		}
@@ -55,12 +65,26 @@ var Binder = Base.extend({
 		return this.ends;
 	},
 
-	isObject : function( ob ){
-		return ob.constructor.prototype == {}.constructor.prototype ? "." : "";
+	isobject : function( ob ){
+		return ob.constructor.prototype === {}.constructor.prototype ? "." : "";
 	},
 
-	isArray : function( ob ){
-		return ob.constructor.prototype == [].constructor.prototype ? "_" : "";
+	isarray : function( ob ){
+		return ob.constructor.prototype === [].constructor.prototype ? "_" : "";
+	},
+
+	get_data : function( index_track ){
+		var indexes = index_track.split(/[\.]|\_/), last = this.template_data[ indexes[ 0 ] ], data = {}, dlast = indexes.length-2;
+
+		for( var i=1, qt = indexes.length; i < qt; i++ ){			
+			last = last[ indexes[ i ] ];
+			if( i === dlast )
+				data.parent = last;
+		}
+
+		data.data = last;
+
+		return data;
 	},
 
 	track : function(){

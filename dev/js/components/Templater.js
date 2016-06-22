@@ -24,42 +24,53 @@ var Templater = Base.extend({
 
 	binder : {},
 
+	type : undefined,
+
 	listenpaint : function(){
 		this.binder = new Binder({
 			template_data : this.template_data,
 			dom : this.dom
 		});
+
+		this.watch();
+	},
+
+	watch : function(){
+		
 	},
 
 	constructor : function( args ){
+		if( this.type === undefined ){
+			throw "Type fo Class needed."
+		}else{
+			if( args && args.model !== undefined ){
+				args.model.owner = this;
+				this.ajax = new Ajax( args.model );
+			}else if( this.model !== undefined ){
+				this.model.owner = this;
+				this.ajax = new Ajax( this.model );
+			}
 
-		if( args && args.model !== undefined ){
-			args.model.owner = this;
-			this.ajax = new Ajax( args.model );
-		}else if( this.model !== undefined ){
-			this.model.owner = this;
-			this.ajax = new Ajax( this.model );
+			if( args && args.template !== undefined && args.template !== '' )
+				this.template = args.template;
+
+			if( args && args.template_data !== undefined )
+				this.template_data = args.template_data;
+
+			if( args && args.events !== undefined )
+				this.events = args.events;
+
+			if( args && args.parent !== undefined )
+				this.parent = args.parent;
+
+			if( (args && args.autopaint) || this.autopaint ){
+				this.autopaint = args && args.autopaint ? args.autopaint : true;
+				this.listenpaint();
+			}
+
+			if( this.template !== '' )
+				this.update_dom();
 		}
-
-		if( args && args.template !== undefined && args.template !== '' )
-			this.template = args.template;
-
-		if( args && args.template_data !== undefined )
-			this.template_data = args.template_data;
-
-		if( args && args.events !== undefined )
-			this.events = args.events;
-
-		if( args && args.parent !== undefined )
-			this.parent = args.parent;
-
-		if( (args && args.autopaint) || this.autopaint ){
-			this.autopaint = args.autopaint || true;
-			this.listenpaint();
-		}
-
-		if( this.template !== '' )
-			this.update_dom();
 	},
 
 	server_get : function(){		

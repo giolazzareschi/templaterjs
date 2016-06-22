@@ -5,8 +5,11 @@ window.$list;
 window.template_data;
 function start_app(){
 
-	template_data = { 
-		phones : ["(47) 9128-2329", "(47) 9911-4370"]
+	template_data = {
+		pizzas : [
+			{flavours: [57,56,63]},
+			{flavours: [57,56,63]}
+		]
 	};
 
 	$list = new List({
