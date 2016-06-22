@@ -396,7 +396,7 @@ Base = Base.extend({
 		 * Gets aggregate text within subject node
 		 */
 		getAggregateText: function() {
-			
+
 			var elementFilter = this.options.filterElements;
 			var forceContext = this.options.forceContext;
 
@@ -595,7 +595,7 @@ Base = Base.extend({
 			) {
 				return '';
 			}
-			string = string.replace(/\$(\d+|&|`|')/g, function($0, t) {
+			string = String(string).replace(/\$(\d+|&|`|')/g, function($0, t) {
 				var replacement;
 				switch(t) {
 					case '&':
@@ -849,6 +849,7 @@ d.push(e),this.push(this.source.functionCall("container.invokePartial","",d))},a
 window.$list;
 window.template_data;
 function start_app(){
+	// var x = performance.now();
 
 	template_data = { 
 		pizzas : [
@@ -862,6 +863,8 @@ function start_app(){
 	});
 
 	$list.render( document.querySelector('#entry_point') );
+
+	// console.log(performance.now() - x);
 };;var Ajax = Base.extend({
 
 	xhr : undefined,
@@ -913,11 +916,15 @@ function start_app(){
 
 	template_data : {},
 
+	template_main : {},
+
 	template_memo : {},
 
 	template_hash : {},
 
 	template_hdom : {},
+
+	mutation_hash : {},
 
 	dom : undefined,
 
@@ -933,9 +940,11 @@ function start_app(){
 			this.template_data = args.template_data;
 
 		if( args && args.dom )
-			this.dom = args.dom;
+			this.dom = args.dom;		
 
 		this.template_memo = this.cloneObject( this.template_data );
+
+		this.template_main = this.cloneObject( this.template_data );
 
 		this.template_hash = this.deep( this.template_memo, "", "" );
 
@@ -968,7 +977,7 @@ function start_app(){
 
 				end += this.deep( el, type, end );
 			}else{
-				this.ends[ end ] = String(el);
+				this.ends[ end ] = el;
 				root[ pp ] = end;
 			}
 		}
@@ -984,26 +993,12 @@ function start_app(){
 		return ob.constructor.prototype === [].constructor.prototype ? "_" : "";
 	},
 
-	get_data : function( index_track ){
-		var indexes = index_track.split(/[\.]|\_/), last = this.template_data[ indexes[ 0 ] ], data = {}, dlast = indexes.length-2;
-
-		for( var i=1, qt = indexes.length; i < qt; i++ ){			
-			last = last[ indexes[ i ] ];
-			if( i === dlast )
-				data.parent = last;
-		}
-
-		data.data = last;
-
-		return data;
-	},
-
 	track : function(){
 		for( index in this.template_hash ){
 			var hash = this.template_hash[ index ],
 			finds = findAndReplaceDOMText( this.dom , {
 				find : index,
-				replace : this.template_hash[ index ]
+				replace : String(this.template_hash[ index ])
 			});
 
 			this.findInputs( this.dom );
@@ -1014,6 +1009,8 @@ function start_app(){
 			}else{
 				this.template_hdom[ index ] = finds.doms;
 			}
+
+			this.mutationdom( this.template_hdom[ index ], index );
 
 			this.template_hdom[ index ].forEach(function(el){
 				if( el.$$templater === undefined ){
@@ -1035,15 +1032,72 @@ function start_app(){
 				
 				input.$$templater = hash;
 
-				if( hdom !== undefined ){
-					this.template_hdom[ hash ].push( input );
+				if( hdom !== undefined ){					
+					this.template_hdom[ hash ] = this.template_hdom[ hash ].concat( input );
 				}else{
 					this.template_hdom[ hash ] = [input];
 				}
 
+				this.mutationinput( this.template_hdom[ hash ], hash );
+
 				input.value = this.template_hash[ label ];
 			}
 		}
+	},
+
+	mutationdom : function( doms, hash ){
+		var i = 0, qt = doms.length;
+
+		for( ; i < qt ; i++ ){
+			var dom = doms[ i ];
+
+			var observer = new MutationObserver(function(mutations) {
+				mutations.forEach(function(mutation) {
+					
+				});    
+			});
+
+			var config = { attributes: true, childList: true, characterData: true };
+
+			observer.observe(dom, config);
+
+			this.mutation_hash[ hash ] = observer;
+		}
+		 
+	},
+
+	set_data : function( index_track, value ){
+		var el = this.get_data( index_track );
+
+		el.data[ el.index ] = value;
+	},
+
+	get_data : function( index_track ){
+		var indexes = index_track.split(/[\.]|\_/), data, count=1, end = indexes.length, index;
+
+		for(var i in indexes){
+			if( count++ < end )
+				data = !data ? this.template_data[ indexes[ i ] ] : data[ indexes [ i ] ];			
+
+			index = indexes[ i ];
+		}
+
+		return {data :data, index : index};
+	},
+
+	mutationinput : function( doms, hash ){
+		var i = 0, qt = doms.length, me = this;
+
+		for( ; i < qt ; i++ ){
+			var dom = doms[ i ];
+
+			dom.addEventListener('change', function( e ){				
+				var el = e.srcElement || e.target
+
+				me.set_data( el.$$templater, el.value );
+			});
+		}
+		 
 	}
 
 });;var Router = Base.extend({
@@ -1098,12 +1152,66 @@ function start_app(){
 	},
 
 	watch : function(){
-		
+		setInterval( this.changes.bind(this), 60 );
+	},
+
+	changes : function(){
+		if( JSON.stringify( this.template_data ) !== JSON.stringify( this.binder.template_main ) ){
+			this.deepfind( this.template_data, null, "", "" );
+		}
+	},
+
+	deepfind : function( where, binder_temp, token, root_label ){
+		if( token === undefined ) token = "";
+
+		var binder = this.binder;		
+
+		for( var p in where ){
+			var original = where[ p ],
+			clean = binder.isarray( original ) || binder.isobject( original ), 
+			track = token + p + clean;
+
+			if( !clean ){
+				
+				if( !binder_temp )
+					binder_temp = binder.template_main[p];
+
+				if( original !== binder_temp[ p ] ){
+
+					var dom = this.binder.template_hdom[track][0];
+
+					dom.textContent ? dom.textContent = original : dom.value = original;
+
+					this.react({
+						changed : p,
+						where : root_label,
+						dom : dom
+					});
+
+					binder.template_main = binder.cloneObject( this.template_data );
+
+					break;
+				}
+			}else{
+				this.deepfind( original, binder_temp ? binder_temp : binder.template_main[p], track, p );
+			}
+		}
+
+		return {};
+	},
+
+	react : function( data ){
+		var reacto = function(){};
+
+		if( this.reactions )
+			reacto = this.reactions[ data.where ];
+
+		reacto.apply( this, [data.dom, data.where] );
 	},
 
 	constructor : function( args ){
 		if( this.type === undefined ){
-			throw "Type fo Class needed."
+			throw "Type for Class needed."
 		}else{
 			if( args && args.model !== undefined ){
 				args.model.owner = this;
@@ -1140,7 +1248,7 @@ function start_app(){
 	},
 
 	hbs : function(){
-		this.update_child_template();
+		this.update_child_template();		
 		var tpl = !this.autopaint ? this.template_data : this.binder.template_memo;
 		return Handlebars.compile( this.template )( tpl );
 	},
@@ -1212,7 +1320,8 @@ function start_app(){
 	register_events : function(property, fn, dom){
 		var data = property.split(' '), event = data[0], selector = data.splice(1).join(' ').trim(), dom = dom !== undefined ? dom : this.dom;
 		try{
-			dom.querySelector( selector ).addEventListener(event, fn.bind(this), !1);
+			if( selector )
+				dom.querySelector( selector ).addEventListener(event, fn.bind(this), !1);
 		}catch(e){
 			console.log( selector );
 			console.log( e );
@@ -1265,6 +1374,23 @@ function start_app(){
 		delete this;
 	}
 
+});;var Likes = Templater.extend({
+
+	type : 'Likes',
+
+	autopaint : true,
+
+	events : {
+		'click #btnlike' : function(){
+			++this.template_data.counter;
+		}
+	},
+
+	template : '' +
+		'<div class="btn-like-wrapper">'+
+			'<button id="btnlike">Likes : (<label>{{counter}}</label>)</button>'+			
+		'<div>'
+
 });;var List = Templater.extend({
 
 	type : 'List',
@@ -1272,25 +1398,36 @@ function start_app(){
 	autopaint : true,
 
 	binds : function(){
+		this.likes = new Likes({
+			template_data : {
+				counter : 0
+			}
+		});
 
+		this.likes.render( this.elements.likes_wrapper );
 	},
 
 	reactions : {
 		pizzas : function(){
-			console.log( this );
+			
+		},
+		flavours : function(){
+			
 		}
 	},
 
 	template : '' +		
 		'<ul class="list-wrapper">'+
 		
+		'<div id="likes_wrapper"></div>' +
+
 		'{{#each pizzas}}'+
-			'<div>'+
+			'<div class="todo-list">'+
 				'<label>Flavours:</label>'+
 				'<ul>'+
 				'{{#each flavours}}'+
 					'<li>'+
-						'<span>{{this}}</span>'+
+						'<span><input value="{{this}}" /></span>'+
 					'</li>'+
 				'{{/each}}'+
 				'</ul>'+

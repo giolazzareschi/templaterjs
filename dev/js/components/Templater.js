@@ -36,12 +36,66 @@ var Templater = Base.extend({
 	},
 
 	watch : function(){
-		
+		setInterval( this.changes.bind(this), 60 );
+	},
+
+	changes : function(){
+		if( JSON.stringify( this.template_data ) !== JSON.stringify( this.binder.template_main ) ){
+			this.deepfind( this.template_data, null, "", "" );
+		}
+	},
+
+	deepfind : function( where, binder_temp, token, root_label ){
+		if( token === undefined ) token = "";
+
+		var binder = this.binder;		
+
+		for( var p in where ){
+			var original = where[ p ],
+			clean = binder.isarray( original ) || binder.isobject( original ), 
+			track = token + p + clean;
+
+			if( !clean ){
+				
+				if( !binder_temp )
+					binder_temp = binder.template_main[p];
+
+				if( original !== binder_temp[ p ] ){
+
+					var dom = this.binder.template_hdom[track][0];
+
+					dom.textContent ? dom.textContent = original : dom.value = original;
+
+					this.react({
+						changed : p,
+						where : root_label,
+						dom : dom
+					});
+
+					binder.template_main = binder.cloneObject( this.template_data );
+
+					break;
+				}
+			}else{
+				this.deepfind( original, binder_temp ? binder_temp : binder.template_main[p], track, p );
+			}
+		}
+
+		return {};
+	},
+
+	react : function( data ){
+		var reacto = function(){};
+
+		if( this.reactions )
+			reacto = this.reactions[ data.where ];
+
+		reacto.apply( this, [data.dom, data.where] );
 	},
 
 	constructor : function( args ){
 		if( this.type === undefined ){
-			throw "Type fo Class needed."
+			throw "Type for Class needed."
 		}else{
 			if( args && args.model !== undefined ){
 				args.model.owner = this;
@@ -78,7 +132,7 @@ var Templater = Base.extend({
 	},
 
 	hbs : function(){
-		this.update_child_template();
+		this.update_child_template();		
 		var tpl = !this.autopaint ? this.template_data : this.binder.template_memo;
 		return Handlebars.compile( this.template )( tpl );
 	},
@@ -150,7 +204,8 @@ var Templater = Base.extend({
 	register_events : function(property, fn, dom){
 		var data = property.split(' '), event = data[0], selector = data.splice(1).join(' ').trim(), dom = dom !== undefined ? dom : this.dom;
 		try{
-			dom.querySelector( selector ).addEventListener(event, fn.bind(this), !1);
+			if( selector )
+				dom.querySelector( selector ).addEventListener(event, fn.bind(this), !1);
 		}catch(e){
 			console.log( selector );
 			console.log( e );
