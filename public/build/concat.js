@@ -937,7 +937,7 @@ function start_app(){
 			this.template_data = args.template_data;
 
 		if( args && args.dom )
-			this.dom = args.dom;
+			this.dom = args.dom;		
 
 		this.template_memo = this.cloneObject( this.template_data );
 
@@ -1011,7 +1011,7 @@ function start_app(){
 			var hash = this.template_hash[ index ],
 			finds = findAndReplaceDOMText( this.dom , {
 				find : index,
-				replace : this.template_hash[ index ]
+				replace : String(this.template_hash[ index ])
 			});
 
 			this.findInputs( this.dom );
@@ -1066,7 +1066,7 @@ function start_app(){
 
 			var observer = new MutationObserver(function(mutations) {
 				mutations.forEach(function(mutation) {
-					console.log(mutation);
+					
 				});    
 			});
 
@@ -1166,6 +1166,10 @@ function start_app(){
 			track = token + p + clean;
 
 			if( !clean ){
+				
+				if( !binder_temp )
+					binder_temp = binder.template_main[p];
+
 				if( original !== binder_temp[ p ] ){
 
 					var dom = this.binder.template_hdom[track][0];
@@ -1183,7 +1187,7 @@ function start_app(){
 					break;
 				}
 			}else{
-				this.deepfind( original, binder_temp ? binder_temp[p] : binder.template_main[p], track, p );
+				this.deepfind( original, binder_temp, track, p );
 			}
 		}
 
@@ -1191,14 +1195,17 @@ function start_app(){
 	},
 
 	react : function( data ){
-		var to = (function(){})() || this.reactions[ data.where ];
+		var reacto = function(){};
 
-		to.apply( this, [data.dom, data.where] );
+		if( this.reactions )
+			reacto = this.reactions[ data.where ];
+
+		reacto.apply( this, [data.dom, data.where] );
 	},
 
 	constructor : function( args ){
 		if( this.type === undefined ){
-			throw "Type fo Class needed."
+			throw "Type for Class needed."
 		}else{
 			if( args && args.model !== undefined ){
 				args.model.owner = this;
@@ -1235,7 +1242,7 @@ function start_app(){
 	},
 
 	hbs : function(){
-		this.update_child_template();
+		this.update_child_template();		
 		var tpl = !this.autopaint ? this.template_data : this.binder.template_memo;
 		return Handlebars.compile( this.template )( tpl );
 	},
@@ -1307,7 +1314,8 @@ function start_app(){
 	register_events : function(property, fn, dom){
 		var data = property.split(' '), event = data[0], selector = data.splice(1).join(' ').trim(), dom = dom !== undefined ? dom : this.dom;
 		try{
-			dom.querySelector( selector ).addEventListener(event, fn.bind(this), !1);
+			if( selector )
+				dom.querySelector( selector ).addEventListener(event, fn.bind(this), !1);
 		}catch(e){
 			console.log( selector );
 			console.log( e );
@@ -1360,6 +1368,18 @@ function start_app(){
 		delete this;
 	}
 
+});;var Likes = Templater.extend({
+
+	type : 'Likes',
+
+	autopaint : true,
+
+	template : '' +
+		'<div>'+
+			'<label>Likes</label>'+
+			'<span>{{counter}}</span>'+
+		'<div>'
+
 });;var List = Templater.extend({
 
 	type : 'List',
@@ -1367,7 +1387,13 @@ function start_app(){
 	autopaint : true,
 
 	binds : function(){
+		this.likes = new Likes({
+			template_data : {
+				counter : 0
+			}
+		});
 
+		this.likes.render( this.elements.likes_wrapper );
 	},
 
 	reactions : {
@@ -1379,9 +1405,19 @@ function start_app(){
 		}
 	},
 
+	events : {
+		'click #thechanger' : function(e){
+			++this.likes.template_data.counter;
+		}
+	},
+
 	template : '' +		
 		'<ul class="list-wrapper">'+
 		
+		'<button id="thechanger">The Changer</button>'+
+		
+		'<div id="likes_wrapper"></div>' +
+
 		'{{#each pizzas}}'+
 			'<div>'+
 				'<label>Flavours:</label>'+

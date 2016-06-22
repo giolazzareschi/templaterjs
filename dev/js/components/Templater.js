@@ -56,6 +56,10 @@ var Templater = Base.extend({
 			track = token + p + clean;
 
 			if( !clean ){
+				
+				if( !binder_temp )
+					binder_temp = binder.template_main[p];
+
 				if( original !== binder_temp[ p ] ){
 
 					var dom = this.binder.template_hdom[track][0];
@@ -73,7 +77,7 @@ var Templater = Base.extend({
 					break;
 				}
 			}else{
-				this.deepfind( original, binder_temp ? binder_temp[p] : binder.template_main[p], track, p );
+				this.deepfind( original, binder_temp, track, p );
 			}
 		}
 
@@ -81,14 +85,17 @@ var Templater = Base.extend({
 	},
 
 	react : function( data ){
-		var to = (function(){})() || this.reactions[ data.where ];
+		var reacto = function(){};
 
-		to.apply( this, [data.dom, data.where] );
+		if( this.reactions )
+			reacto = this.reactions[ data.where ];
+
+		reacto.apply( this, [data.dom, data.where] );
 	},
 
 	constructor : function( args ){
 		if( this.type === undefined ){
-			throw "Type fo Class needed."
+			throw "Type for Class needed."
 		}else{
 			if( args && args.model !== undefined ){
 				args.model.owner = this;
@@ -125,7 +132,7 @@ var Templater = Base.extend({
 	},
 
 	hbs : function(){
-		this.update_child_template();
+		this.update_child_template();		
 		var tpl = !this.autopaint ? this.template_data : this.binder.template_memo;
 		return Handlebars.compile( this.template )( tpl );
 	},
@@ -197,7 +204,8 @@ var Templater = Base.extend({
 	register_events : function(property, fn, dom){
 		var data = property.split(' '), event = data[0], selector = data.splice(1).join(' ').trim(), dom = dom !== undefined ? dom : this.dom;
 		try{
-			dom.querySelector( selector ).addEventListener(event, fn.bind(this), !1);
+			if( selector )
+				dom.querySelector( selector ).addEventListener(event, fn.bind(this), !1);
 		}catch(e){
 			console.log( selector );
 			console.log( e );

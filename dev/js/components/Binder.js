@@ -26,7 +26,7 @@ var Binder = Base.extend({
 			this.template_data = args.template_data;
 
 		if( args && args.dom )
-			this.dom = args.dom;
+			this.dom = args.dom;		
 
 		this.template_memo = this.cloneObject( this.template_data );
 
@@ -100,7 +100,7 @@ var Binder = Base.extend({
 			var hash = this.template_hash[ index ],
 			finds = findAndReplaceDOMText( this.dom , {
 				find : index,
-				replace : this.template_hash[ index ]
+				replace : String(this.template_hash[ index ])
 			});
 
 			this.findInputs( this.dom );
@@ -155,7 +155,7 @@ var Binder = Base.extend({
 
 			var observer = new MutationObserver(function(mutations) {
 				mutations.forEach(function(mutation) {
-					console.log(mutation);
+					
 				});    
 			});
 
