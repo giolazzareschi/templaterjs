@@ -1148,6 +1148,7 @@ function start_app(){
 			dom : this.dom
 		});
 
+		this.setpushpop(this.template_data, "", "");
 		this.watch();
 	},
 
@@ -1168,7 +1169,8 @@ function start_app(){
 
 		for( var p in where ){
 			var original = where[ p ],
-			clean = binder.isarray( original ) || binder.isobject( original ), 
+			isarray = binder.isarray( original ),
+			clean = isarray || binder.isobject( original ), 
 			track = token + p + clean;
 
 			if( !clean ){
@@ -1178,26 +1180,84 @@ function start_app(){
 
 				if( original !== binder_temp[ p ] ){
 
-					var dom = this.binder.template_hdom[track][0];
+					this.binder.template_main = binder.cloneObject( this.template_data );
 
-					dom.textContent ? dom.textContent = original : dom.value = original;
+					var dom = this.binder.template_hdom[track];
 
-					this.react({
-						changed : p,
-						where : root_label,
-						dom : dom
-					});
+					if( dom && dom.length ){
+						dom = dom[0];
+						dom.textContent ? dom.textContent = original : dom.value = original;
 
-					binder.template_main = binder.cloneObject( this.template_data );
+						this.react({
+							changed : p,
+							where : root_label,
+							dom : dom
+						});
+					}
 
 					break;
 				}
 			}else{
-				this.deepfind( original, binder_temp ? binder_temp : binder.template_main[p], track, p );
+				binder_ = binder_temp ? binder_temp[p] : binder.template_main[p];
+
+				this.deepfind( original, binder_, track, p );
 			}
 		}
 
 		return {};
+	},
+
+	setpushpop : function( where, token, root_label ){
+		if( token === undefined ) token = "";
+
+		var binder = this.binder;		
+
+		for( var p in where ){
+			var original = where[ p ],
+			isarray = binder.isarray( original ),
+			clean = isarray || binder.isobject( original ), 
+			track = token + p + clean;
+
+			if( clean && isarray ){
+				original.pop = this.pop_.bind(this, original, track.slice(0, -1));
+				original.push = this.push_.bind(this, original, track.slice(0, -1));
+			}
+
+			this.setpushpop( original, track, p );
+		}
+	},
+
+	pop_ : function( array_, track_id, index ){
+		index = index === undefined || index === null ? array_.length : index;
+		
+		array_.splice(index, 1);
+
+		this.removed_data(track_id, index)
+	},
+
+	push_ : function( array_, track_id, item, index ){
+		index = index === undefined || index === null ? array_.length : index;
+		
+		array_.splice(index, 0, item);
+
+		this.added_data(track_id, index)
+	},
+
+	removed_data : function( track_id, index ){
+		try{
+			this.reactions[ track_id ].remove.apply( this, [{index: index}] );
+		}catch(e){};
+
+		this.binder.template_main = this.binder.cloneObject( this.template_data );	
+	},
+
+
+	added_data : function( track_id, index ){
+		try{
+			this.reactions[ track_id ].add.apply( this, [{index: index}] );
+		}catch(e){};
+
+		this.binder.template_main = this.binder.cloneObject( this.template_data );	
 	},
 
 	react : function( data ){
@@ -1389,10 +1449,10 @@ function start_app(){
 		}
 	},
 
-	template : '' +
-		'<div class="btn-like-wrapper">'+
-			'<button id="btnlike">Likes : (<label>{{counter}}</label>)</button>'+			
-		'<div>'
+	template : `
+		<div class="btn-like-wrapper">
+			<button id="btnlike">Likes : (<label>{{counter}}</label>)</button>
+		<div>`
 
 });;var List = Templater.extend({
 
@@ -1409,13 +1469,22 @@ function start_app(){
 
 		this.likes.render( this.elements.likes_wrapper );
 
-		this.items = new ListItem({
-			template_data : {
-				pizzas : this.template_data.pizzas
-			}
-		});
+		var pizzas = this.template_data.pizzas, list_here = this.elements.list_here;
 
-		this.items.render( this.elements.list_here );
+		this.clear( list_here );
+
+		for(var i=0, qt=pizzas.length; i < qt; i++){
+			var flavours = pizzas[ i ].flavours, item;
+			
+			item = new ListItem({
+				template_data : {
+					flavours : flavours
+				}
+			});
+
+			item.append( list_here );
+		}
+
 	},
 
 	reactions : {
@@ -1435,28 +1504,38 @@ function start_app(){
 		}
 	},
 
-	template : '' +		
-		'<ul class="list-wrapper">'+
-			'<div id="likes_wrapper"></div>' +
-			'<div id="list_here"></div>'+
-		'</ul>'
+	template : `		
+		<ul class="list-wrapper">
+			<div id="likes_wrapper"></div>
+			<ul id="list_here"></ul>
+		</ul>
+	`
 
 });;var ListItem = Templater.extend({
 
 	type : 'ListItem',
 
-	template : ''+
-		'<div>'+
-			'{{#each pizzas}}'+
-			'<div class="todo-list">'+
-				'<label>Flavours:</label>'+
-				'{{#each flavours}}'+
-					'<li>'+
-						'{{this}}'+
-					'</li>'+
-				'{{/each}}'+
-			'</div>'+
-			'{{/each}}'+
-		'</div>'
+	autopaint : true,
+
+	reactions : {
+		flavours : {
+			add : function(){
+				debugger;
+			},
+			remove : function(){
+				debugger;
+			}
+		}
+	},
+
+	template : `
+		<div>
+		{{#each flavours}}
+			<li>
+				{{this}}
+			</li>
+		{{/each}}
+		</div>
+	`
 
 });

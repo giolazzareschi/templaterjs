@@ -10,9 +10,9 @@ var Likes = Templater.extend({
 		}
 	},
 
-	template : '' +
-		'<div class="btn-like-wrapper">'+
-			'<button id="btnlike">Likes : (<label>{{counter}}</label>)</button>'+			
-		'<div>'
+	template : `
+		<div class="btn-like-wrapper">
+			<button id="btnlike">Likes : (<label>{{counter}}</label>)</button>
+		<div>`
 
 });

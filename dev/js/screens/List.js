@@ -13,13 +13,22 @@ var List = Templater.extend({
 
 		this.likes.render( this.elements.likes_wrapper );
 
-		this.items = new ListItem({
-			template_data : {
-				pizzas : this.template_data.pizzas
-			}
-		});
+		var pizzas = this.template_data.pizzas, list_here = this.elements.list_here;
 
-		this.items.render( this.elements.list_here );
+		this.clear( list_here );
+
+		for(var i=0, qt=pizzas.length; i < qt; i++){
+			var flavours = pizzas[ i ].flavours, item;
+			
+			item = new ListItem({
+				template_data : {
+					flavours : flavours
+				}
+			});
+
+			item.append( list_here );
+		}
+
 	},
 
 	reactions : {
@@ -39,10 +48,11 @@ var List = Templater.extend({
 		}
 	},
 
-	template : '' +		
-		'<ul class="list-wrapper">'+
-			'<div id="likes_wrapper"></div>' +
-			'<div id="list_here"></div>'+
-		'</ul>'
+	template : `		
+		<ul class="list-wrapper">
+			<div id="likes_wrapper"></div>
+			<ul id="list_here"></ul>
+		</ul>
+	`
 
 });

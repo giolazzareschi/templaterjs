@@ -32,6 +32,7 @@ var Templater = Base.extend({
 			dom : this.dom
 		});
 
+		this.setpushpop(this.template_data, "", "");
 		this.watch();
 	},
 
@@ -52,7 +53,8 @@ var Templater = Base.extend({
 
 		for( var p in where ){
 			var original = where[ p ],
-			clean = binder.isarray( original ) || binder.isobject( original ), 
+			isarray = binder.isarray( original ),
+			clean = isarray || binder.isobject( original ), 
 			track = token + p + clean;
 
 			if( !clean ){
@@ -62,26 +64,84 @@ var Templater = Base.extend({
 
 				if( original !== binder_temp[ p ] ){
 
-					var dom = this.binder.template_hdom[track][0];
+					this.binder.template_main = binder.cloneObject( this.template_data );
 
-					dom.textContent ? dom.textContent = original : dom.value = original;
+					var dom = this.binder.template_hdom[track];
 
-					this.react({
-						changed : p,
-						where : root_label,
-						dom : dom
-					});
+					if( dom && dom.length ){
+						dom = dom[0];
+						dom.textContent ? dom.textContent = original : dom.value = original;
 
-					binder.template_main = binder.cloneObject( this.template_data );
+						this.react({
+							changed : p,
+							where : root_label,
+							dom : dom
+						});
+					}
 
 					break;
 				}
 			}else{
-				this.deepfind( original, binder_temp ? binder_temp : binder.template_main[p], track, p );
+				binder_ = binder_temp ? binder_temp[p] : binder.template_main[p];
+
+				this.deepfind( original, binder_, track, p );
 			}
 		}
 
 		return {};
+	},
+
+	setpushpop : function( where, token, root_label ){
+		if( token === undefined ) token = "";
+
+		var binder = this.binder;		
+
+		for( var p in where ){
+			var original = where[ p ],
+			isarray = binder.isarray( original ),
+			clean = isarray || binder.isobject( original ), 
+			track = token + p + clean;
+
+			if( clean && isarray ){
+				original.pop = this.pop_.bind(this, original, track.slice(0, -1));
+				original.push = this.push_.bind(this, original, track.slice(0, -1));
+			}
+
+			this.setpushpop( original, track, p );
+		}
+	},
+
+	pop_ : function( array_, track_id, index ){
+		index = index === undefined || index === null ? array_.length : index;
+		
+		array_.splice(index, 1);
+
+		this.removed_data(track_id, index)
+	},
+
+	push_ : function( array_, track_id, item, index ){
+		index = index === undefined || index === null ? array_.length : index;
+		
+		array_.splice(index, 0, item);
+
+		this.added_data(track_id, index)
+	},
+
+	removed_data : function( track_id, index ){
+		try{
+			this.reactions[ track_id ].remove.apply( this, [{index: index}] );
+		}catch(e){};
+
+		this.binder.template_main = this.binder.cloneObject( this.template_data );	
+	},
+
+
+	added_data : function( track_id, index ){
+		try{
+			this.reactions[ track_id ].add.apply( this, [{index: index}] );
+		}catch(e){};
+
+		this.binder.template_main = this.binder.cloneObject( this.template_data );	
 	},
 
 	react : function( data ){
