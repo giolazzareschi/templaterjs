@@ -12,6 +12,14 @@ var List = Templater.extend({
 		});
 
 		this.likes.render( this.elements.likes_wrapper );
+
+		this.items = new ListItem({
+			template_data : {
+				pizzas : this.template_data.pizzas
+			}
+		});
+
+		this.items.render( this.elements.list_here );
 	},
 
 	reactions : {
@@ -23,24 +31,18 @@ var List = Templater.extend({
 		}
 	},
 
+	events : {
+		'click .btn-delete-item' : function(e){
+			var el = e.srcElement || e.target;
+
+			console.log( this.template_data.pizzas[ el.getAttribute('pizza-index') ].flavours[el.getAttribute('flavour-index')] );
+		}
+	},
+
 	template : '' +		
 		'<ul class="list-wrapper">'+
-		
-		'<div id="likes_wrapper"></div>' +
-
-		'{{#each pizzas}}'+
-			'<div class="todo-list">'+
-				'<label>Flavours:</label>'+
-				'<ul>'+
-				'{{#each flavours}}'+
-					'<li>'+
-						'<span><input value="{{this}}" /></span>'+
-					'</li>'+
-				'{{/each}}'+
-				'</ul>'+
-			'</div>'+
-		'{{/each}}'+
-		
+			'<div id="likes_wrapper"></div>' +
+			'<div id="list_here"></div>'+
 		'</ul>'
 
 });

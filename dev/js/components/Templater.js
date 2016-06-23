@@ -204,8 +204,11 @@ var Templater = Base.extend({
 	register_events : function(property, fn, dom){
 		var data = property.split(' '), event = data[0], selector = data.splice(1).join(' ').trim(), dom = dom !== undefined ? dom : this.dom;
 		try{
-			if( selector )
-				dom.querySelector( selector ).addEventListener(event, fn.bind(this), !1);
+			if( selector ){
+				var dd = dom.querySelectorAll( selector );
+				for(var i=0, qt=dd.length; i<qt; i++)
+					dd[ i ].addEventListener(event, fn.bind(this), !1);
+			}
 		}catch(e){
 			console.log( selector );
 			console.log( e );

@@ -851,7 +851,7 @@ window.template_data;
 function start_app(){
 	// var x = performance.now();
 
-	template_data = { 
+	template_data = {
 		pizzas : [
 			{flavours: [57,56,63]},
 			{flavours: [57,56,63]}
@@ -1320,8 +1320,11 @@ function start_app(){
 	register_events : function(property, fn, dom){
 		var data = property.split(' '), event = data[0], selector = data.splice(1).join(' ').trim(), dom = dom !== undefined ? dom : this.dom;
 		try{
-			if( selector )
-				dom.querySelector( selector ).addEventListener(event, fn.bind(this), !1);
+			if( selector ){
+				var dd = dom.querySelectorAll( selector );
+				for(var i=0, qt=dd.length; i<qt; i++)
+					dd[ i ].addEventListener(event, fn.bind(this), !1);
+			}
 		}catch(e){
 			console.log( selector );
 			console.log( e );
@@ -1405,6 +1408,14 @@ function start_app(){
 		});
 
 		this.likes.render( this.elements.likes_wrapper );
+
+		this.items = new ListItem({
+			template_data : {
+				pizzas : this.template_data.pizzas
+			}
+		});
+
+		this.items.render( this.elements.list_here );
 	},
 
 	reactions : {
@@ -1416,24 +1427,36 @@ function start_app(){
 		}
 	},
 
+	events : {
+		'click .btn-delete-item' : function(e){
+			var el = e.srcElement || e.target;
+
+			console.log( this.template_data.pizzas[ el.getAttribute('pizza-index') ].flavours[el.getAttribute('flavour-index')] );
+		}
+	},
+
 	template : '' +		
 		'<ul class="list-wrapper">'+
-		
-		'<div id="likes_wrapper"></div>' +
+			'<div id="likes_wrapper"></div>' +
+			'<div id="list_here"></div>'+
+		'</ul>'
 
-		'{{#each pizzas}}'+
+});;var ListItem = Templater.extend({
+
+	type : 'ListItem',
+
+	template : ''+
+		'<div>'+
+			'{{#each pizzas}}'+
 			'<div class="todo-list">'+
 				'<label>Flavours:</label>'+
-				'<ul>'+
 				'{{#each flavours}}'+
 					'<li>'+
-						'<span><input value="{{this}}" /></span>'+
+						'{{this}}'+
 					'</li>'+
 				'{{/each}}'+
-				'</ul>'+
 			'</div>'+
-		'{{/each}}'+
-		
-		'</ul>'
+			'{{/each}}'+
+		'</div>'
 
 });
