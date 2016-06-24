@@ -14,8 +14,6 @@ var Binder = Base.extend({
 
 	dom : undefined,
 
-	ends : {},
-
 	lists : {},
 
 	observers : [],
@@ -30,7 +28,7 @@ var Binder = Base.extend({
 
 		this.template_memo = this.cloneObject( this.template_data );
 
-		this.template_main = this.cloneObject( this.template_data );
+		this.template_main = this.cloneObject( this.template_data );		
 
 		this.template_hash = this.deep( this.template_memo, "", "" );
 
@@ -49,7 +47,8 @@ var Binder = Base.extend({
 	    return temp;		
 	},
 
-	deep : function( root, root_type, root_label ){
+	deep : function( root, root_type, root_label ){		
+		var ends = {};
 
 		for( pp in root ){
 			var el = root[ pp ], type_array = this.isarray( el ), 
@@ -63,12 +62,12 @@ var Binder = Base.extend({
 
 				end += this.deep( el, type, end );
 			}else{
-				this.ends[ end ] = el;
+				ends[ end ] = el;
 				root[ pp ] = end;
 			}
 		}
 
-		return this.ends;
+		return ends;
 	},
 
 	isobject : function( ob ){
@@ -80,6 +79,7 @@ var Binder = Base.extend({
 	},
 
 	track : function(){
+
 		for( index in this.template_hash ){
 			var hash = this.template_hash[ index ],
 			finds = findAndReplaceDOMText( this.dom , {

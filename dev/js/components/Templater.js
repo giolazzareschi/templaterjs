@@ -24,14 +24,15 @@ var Templater = Base.extend({
 
 	binder : {},
 
+	items : {},
+
 	type : undefined,
 
-	listenpaint : function(){
-		this.binder = new Binder({
-			template_data : this.template_data,
-			dom : this.dom
-		});
+	isList : false,
 
+	isListItem : false,
+
+	listenpaint : function(){		
 		this.setpushpop(this.template_data, "", "");
 		this.watch();
 	},
@@ -102,6 +103,8 @@ var Templater = Base.extend({
 			clean = isarray || binder.isobject( original ), 
 			track = token + p + clean;
 
+			if( typeof original === "function ") continue;
+
 			if( clean && isarray ){
 				original.pop = this.pop_.bind(this, original, track.slice(0, -1));
 				original.push = this.push_.bind(this, original, track.slice(0, -1));
@@ -132,6 +135,10 @@ var Templater = Base.extend({
 			this.reactions[ track_id ].remove.apply( this, [{index: index}] );
 		}catch(e){};
 
+		var item = this.items[ index ];
+		item.dom.parentNode.removeChild( item.dom );
+		delete this.items[String(index)];
+
 		this.binder.template_main = this.binder.cloneObject( this.template_data );	
 	},
 
@@ -153,10 +160,11 @@ var Templater = Base.extend({
 		reacto.apply( this, [data.dom, data.where] );
 	},
 
-	constructor : function( args ){
+	constructor : function( args ){		
 		if( this.type === undefined ){
 			throw "Type for Class needed."
 		}else{
+
 			if( args && args.model !== undefined ){
 				args.model.owner = this;
 				this.ajax = new Ajax( args.model );
@@ -171,20 +179,61 @@ var Templater = Base.extend({
 			if( args && args.template_data !== undefined )
 				this.template_data = args.template_data;
 
+			if( this.isList )
+				if( this.template_data.items !== undefined )
+					this.create_items();
+
 			if( args && args.events !== undefined )
 				this.events = args.events;
 
 			if( args && args.parent !== undefined )
 				this.parent = args.parent;
 
+			if( this.template !== '' )
+				this.update_dom();
+
 			if( (args && args.autopaint) || this.autopaint ){
 				this.autopaint = args && args.autopaint ? args.autopaint : true;
 				this.listenpaint();
 			}
-
-			if( this.template !== '' )
-				this.update_dom();
 		}
+	},
+
+	create_items : function(){		
+		var items = this.template_data.items, model_name = this.type + 'Item', model = window[model_name];
+
+		model.prototype.type = model_name;
+		model.prototype.isListItem = true;
+
+		var tt = new model({
+			template_data : {
+				item : items[0]
+			}
+		});
+
+		tt.parent = this;
+
+		this.items['0'] = tt;
+
+		tt = new model({
+			template_data : {
+				item : items[1]
+			}
+		});
+
+		tt.parent = this;
+
+		this.items['1'] = tt;
+
+		tt = new model({
+			template_data : {
+				item : items[2]
+			}
+		});
+
+		tt.parent = this;
+
+		this.items['2'] = tt;
 	},
 
 	server_get : function(){		
@@ -210,6 +259,14 @@ var Templater = Base.extend({
 	},
 
 	update_dom : function( rollback_dom ){
+
+		if( this.autopaint ){			
+			var binder = new Binder({
+				template_data : this.template_data
+			});
+			this.binder = binder;
+		}
+
 		if( !rollback_dom ){
 			var dom = document.createElement('div');
 			dom.innerHTML = this.hbs();
@@ -219,12 +276,16 @@ var Templater = Base.extend({
 			this.buffer_rollback = undefined;
 		}
 
+		this.get_template_elements();
+
 		if( this.autopaint ){
 			this.binder.dom = this.dom;
 			this.binder.track();
 		}
-
-		this.get_template_elements();
+		
+		for( index in this.items ){
+			this.items[ index ].append( this.dom );
+		}
 
 		for( p in this.events )
 			this.register_events(p, this.events[p]);

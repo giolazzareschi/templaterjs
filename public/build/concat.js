@@ -854,7 +854,7 @@ function start_app(){
 	template_data = {
 		pizzas : [
 			{flavours: [57,56,63]},
-			{flavours: [57,56,63]}
+			{flavours: [10,20,30]}
 		]
 	};
 
@@ -928,8 +928,6 @@ function start_app(){
 
 	dom : undefined,
 
-	ends : {},
-
 	lists : {},
 
 	observers : [],
@@ -944,7 +942,7 @@ function start_app(){
 
 		this.template_memo = this.cloneObject( this.template_data );
 
-		this.template_main = this.cloneObject( this.template_data );
+		this.template_main = this.cloneObject( this.template_data );		
 
 		this.template_hash = this.deep( this.template_memo, "", "" );
 
@@ -963,7 +961,8 @@ function start_app(){
 	    return temp;		
 	},
 
-	deep : function( root, root_type, root_label ){
+	deep : function( root, root_type, root_label ){		
+		var ends = {};
 
 		for( pp in root ){
 			var el = root[ pp ], type_array = this.isarray( el ), 
@@ -977,12 +976,12 @@ function start_app(){
 
 				end += this.deep( el, type, end );
 			}else{
-				this.ends[ end ] = el;
+				ends[ end ] = el;
 				root[ pp ] = end;
 			}
 		}
 
-		return this.ends;
+		return ends;
 	},
 
 	isobject : function( ob ){
@@ -994,6 +993,7 @@ function start_app(){
 	},
 
 	track : function(){
+
 		for( index in this.template_hash ){
 			var hash = this.template_hash[ index ],
 			finds = findAndReplaceDOMText( this.dom , {
@@ -1140,14 +1140,15 @@ function start_app(){
 
 	binder : {},
 
+	items : {},
+
 	type : undefined,
 
-	listenpaint : function(){
-		this.binder = new Binder({
-			template_data : this.template_data,
-			dom : this.dom
-		});
+	isList : false,
 
+	isListItem : false,
+
+	listenpaint : function(){		
 		this.setpushpop(this.template_data, "", "");
 		this.watch();
 	},
@@ -1218,6 +1219,8 @@ function start_app(){
 			clean = isarray || binder.isobject( original ), 
 			track = token + p + clean;
 
+			if( typeof original === "function ") continue;
+
 			if( clean && isarray ){
 				original.pop = this.pop_.bind(this, original, track.slice(0, -1));
 				original.push = this.push_.bind(this, original, track.slice(0, -1));
@@ -1248,6 +1251,10 @@ function start_app(){
 			this.reactions[ track_id ].remove.apply( this, [{index: index}] );
 		}catch(e){};
 
+		var item = this.items[ index ];
+		item.dom.parentNode.removeChild( item.dom );
+		delete this.items[String(index)];
+
 		this.binder.template_main = this.binder.cloneObject( this.template_data );	
 	},
 
@@ -1269,10 +1276,11 @@ function start_app(){
 		reacto.apply( this, [data.dom, data.where] );
 	},
 
-	constructor : function( args ){
+	constructor : function( args ){		
 		if( this.type === undefined ){
 			throw "Type for Class needed."
 		}else{
+
 			if( args && args.model !== undefined ){
 				args.model.owner = this;
 				this.ajax = new Ajax( args.model );
@@ -1287,20 +1295,61 @@ function start_app(){
 			if( args && args.template_data !== undefined )
 				this.template_data = args.template_data;
 
+			if( this.isList )
+				if( this.template_data.items !== undefined )
+					this.create_items();
+
 			if( args && args.events !== undefined )
 				this.events = args.events;
 
 			if( args && args.parent !== undefined )
 				this.parent = args.parent;
 
+			if( this.template !== '' )
+				this.update_dom();
+
 			if( (args && args.autopaint) || this.autopaint ){
 				this.autopaint = args && args.autopaint ? args.autopaint : true;
 				this.listenpaint();
 			}
-
-			if( this.template !== '' )
-				this.update_dom();
 		}
+	},
+
+	create_items : function(){		
+		var items = this.template_data.items, model_name = this.type + 'Item', model = window[model_name];
+
+		model.prototype.type = model_name;
+		model.prototype.isListItem = true;
+
+		var tt = new model({
+			template_data : {
+				item : items[0]
+			}
+		});
+
+		tt.parent = this;
+
+		this.items['0'] = tt;
+
+		tt = new model({
+			template_data : {
+				item : items[1]
+			}
+		});
+
+		tt.parent = this;
+
+		this.items['1'] = tt;
+
+		tt = new model({
+			template_data : {
+				item : items[2]
+			}
+		});
+
+		tt.parent = this;
+
+		this.items['2'] = tt;
 	},
 
 	server_get : function(){		
@@ -1326,6 +1375,14 @@ function start_app(){
 	},
 
 	update_dom : function( rollback_dom ){
+
+		if( this.autopaint ){			
+			var binder = new Binder({
+				template_data : this.template_data
+			});
+			this.binder = binder;
+		}
+
 		if( !rollback_dom ){
 			var dom = document.createElement('div');
 			dom.innerHTML = this.hbs();
@@ -1335,12 +1392,16 @@ function start_app(){
 			this.buffer_rollback = undefined;
 		}
 
+		this.get_template_elements();
+
 		if( this.autopaint ){
 			this.binder.dom = this.dom;
 			this.binder.track();
 		}
-
-		this.get_template_elements();
+		
+		for( index in this.items ){
+			this.items[ index ].append( this.dom );
+		}
 
 		for( p in this.events )
 			this.register_events(p, this.events[p]);
@@ -1437,6 +1498,10 @@ function start_app(){
 		delete this;
 	}
 
+});;var TemplaterList = Templater.extend({	
+
+	isList : true
+
 });;var Likes = Templater.extend({
 
 	type : 'Likes',
@@ -1461,30 +1526,15 @@ function start_app(){
 	autopaint : true,
 
 	binds : function(){
-		this.likes = new Likes({
+
+		this.flavours = new ListFlavours({
 			template_data : {
-				counter : 0
+				items : this.template_data.pizzas[0].flavours
 			}
 		});
 
-		this.likes.render( this.elements.likes_wrapper );
 
-		var pizzas = this.template_data.pizzas, list_here = this.elements.list_here;
-
-		this.clear( list_here );
-
-		for(var i=0, qt=pizzas.length; i < qt; i++){
-			var flavours = pizzas[ i ].flavours, item;
-			
-			item = new ListItem({
-				template_data : {
-					flavours : flavours
-				}
-			});
-
-			item.append( list_here );
-		}
-
+		this.flavours.render( this.elements.list_here );
 	},
 
 	reactions : {
@@ -1511,31 +1561,26 @@ function start_app(){
 		</ul>
 	`
 
-});;var ListItem = Templater.extend({
+});;var ListFlavours = TemplaterList.extend({
 
-	type : 'ListItem',
+	type : 'ListFlavours',
 
 	autopaint : true,
 
-	reactions : {
-		flavours : {
-			add : function(){
-				debugger;
-			},
-			remove : function(){
-				debugger;
-			}
-		}
+	binds : function(){
+
+		console.log( this.dom );
+
 	},
 
-	template : `
-		<div>
-		{{#each flavours}}
-			<li>
-				{{this}}
-			</li>
-		{{/each}}
-		</div>
-	`
+	template : `<div class="itemss"></div>`
+
+});;var ListFlavoursItem = Templater.extend({
+
+	type : 'ListFlavoursItem',
+
+	autopaint : true,
+
+	template : '<li>{{item}}</li>'
 
 });

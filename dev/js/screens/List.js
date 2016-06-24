@@ -5,30 +5,15 @@ var List = Templater.extend({
 	autopaint : true,
 
 	binds : function(){
-		this.likes = new Likes({
+
+		this.flavours = new ListFlavours({
 			template_data : {
-				counter : 0
+				items : this.template_data.pizzas[0].flavours
 			}
 		});
 
-		this.likes.render( this.elements.likes_wrapper );
 
-		var pizzas = this.template_data.pizzas, list_here = this.elements.list_here;
-
-		this.clear( list_here );
-
-		for(var i=0, qt=pizzas.length; i < qt; i++){
-			var flavours = pizzas[ i ].flavours, item;
-			
-			item = new ListItem({
-				template_data : {
-					flavours : flavours
-				}
-			});
-
-			item.append( list_here );
-		}
-
+		this.flavours.render( this.elements.list_here );
 	},
 
 	reactions : {
