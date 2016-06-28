@@ -18,7 +18,11 @@ var Binder = Base.extend({
 
 	observers : [],
 
+	ends : {},
+
 	constructor : function( args ){
+
+		this.ends = {};
 
 		if( args && args.template_data )
 			this.template_data = args.template_data;
@@ -30,7 +34,9 @@ var Binder = Base.extend({
 
 		this.template_main = this.cloneObject( this.template_data );		
 
-		this.template_hash = this.deep( this.template_memo, "", "" );
+		this.deep( this.template_memo, "", "" );
+
+		this.template_hash = this.ends;
 
 		this.template_hdom = {};
 
@@ -60,10 +66,9 @@ var Binder = Base.extend({
 				if( type_array && react)
 					this.lists[ end ] = react; 
 
-				return this.deep( el, type, end );
+				this.deep( el, type, end );
 			}else{
-				ends[ end ] = el;
-				root[ pp ] = end;
+				this.ends[ end ] = el;				
 			}
 		}
 
@@ -111,7 +116,13 @@ var Binder = Base.extend({
 		var inputs = dom.querySelectorAll('input'), i=0, qt=inputs.length;
 		for( ;i < qt; i++ ){
 			var input = inputs[ i ] , hash = input.value, label = hash.split("|")[0],
-			data = this.template_hash[ label ], hdom;
+			data, hdom;
+
+			data = this.template_hash[ label ];
+			if( !data ){
+				data = this.template_hash[ 'item' ];
+				if( data ) hash = "item";
+			}
 
 			if( data ){
 				hdom = this.template_hdom[ hash ];
@@ -126,7 +137,7 @@ var Binder = Base.extend({
 
 				this.mutationinput( this.template_hdom[ hash ], hash );
 
-				input.value = this.template_hash[ label ];
+				input.value = data;
 			}
 		}
 	},

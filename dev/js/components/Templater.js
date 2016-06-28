@@ -71,7 +71,7 @@ var Templater = Base.extend({
 					if( !dom )
 						dom = this.items[ p ];
 
-					if( dom !== undefined ){
+					if( dom !== undefined && dom.length > 0 ){
 						dom = dom.length ? dom[0] : dom.dom;
 						dom.textContent ? dom.textContent = original : dom.value = original;
 

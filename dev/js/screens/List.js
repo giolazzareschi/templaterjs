@@ -12,7 +12,6 @@ var List = Templater.extend({
 			}
 		});
 
-
 		this.flavours.render( this.elements.list_here );
 	},
 
@@ -22,14 +21,6 @@ var List = Templater.extend({
 		},
 		flavours : function(){
 			
-		}
-	},
-
-	events : {
-		'click .btn-delete-item' : function(e){
-			var el = e.srcElement || e.target;
-
-			console.log( this.template_data.pizzas[ el.getAttribute('pizza-index') ].flavours[el.getAttribute('flavour-index')] );
 		}
 	},
 

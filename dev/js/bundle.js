@@ -8,10 +8,7 @@ function start_app(){
 
 	template_data = {
 		pizzas : [{
-			flavours: [
-				{name : 'giordano 1', age : 27},
-				{name : 'giordano 2', age : 27}
-			]
+			flavours: []
 		}]
 	};
 

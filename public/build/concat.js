@@ -853,10 +853,7 @@ function start_app(){
 
 	template_data = {
 		pizzas : [{
-			flavours: [
-				{name : 'giordano 1', age : 27},
-				{name : 'giordano 2', age : 27}
-			]
+			flavours: []
 		}]
 	};
 
@@ -934,7 +931,11 @@ function start_app(){
 
 	observers : [],
 
+	ends : {},
+
 	constructor : function( args ){
+
+		this.ends = {};
 
 		if( args && args.template_data )
 			this.template_data = args.template_data;
@@ -946,7 +947,9 @@ function start_app(){
 
 		this.template_main = this.cloneObject( this.template_data );		
 
-		this.template_hash = this.deep( this.template_memo, "", "" );
+		this.deep( this.template_memo, "", "" );
+
+		this.template_hash = this.ends;
 
 		this.template_hdom = {};
 
@@ -976,10 +979,9 @@ function start_app(){
 				if( type_array && react)
 					this.lists[ end ] = react; 
 
-				return this.deep( el, type, end );
+				this.deep( el, type, end );
 			}else{
-				ends[ end ] = el;
-				root[ pp ] = end;
+				this.ends[ end ] = el;				
 			}
 		}
 
@@ -1027,7 +1029,13 @@ function start_app(){
 		var inputs = dom.querySelectorAll('input'), i=0, qt=inputs.length;
 		for( ;i < qt; i++ ){
 			var input = inputs[ i ] , hash = input.value, label = hash.split("|")[0],
-			data = this.template_hash[ label ], hdom;
+			data, hdom;
+
+			data = this.template_hash[ label ];
+			if( !data ){
+				data = this.template_hash[ 'item' ];
+				if( data ) hash = "item";
+			}
 
 			if( data ){
 				hdom = this.template_hdom[ hash ];
@@ -1042,7 +1050,7 @@ function start_app(){
 
 				this.mutationinput( this.template_hdom[ hash ], hash );
 
-				input.value = this.template_hash[ label ];
+				input.value = data;
 			}
 		}
 	},
@@ -1189,7 +1197,7 @@ function start_app(){
 					if( !dom )
 						dom = this.items[ p ];
 
-					if( dom !== undefined ){
+					if( dom !== undefined && dom.length > 0 ){
 						dom = dom.length ? dom[0] : dom.dom;
 						dom.textContent ? dom.textContent = original : dom.value = original;
 
@@ -1565,7 +1573,6 @@ function start_app(){
 			}
 		});
 
-
 		this.flavours.render( this.elements.list_here );
 	},
 
@@ -1578,14 +1585,6 @@ function start_app(){
 		}
 	},
 
-	events : {
-		'click .btn-delete-item' : function(e){
-			var el = e.srcElement || e.target;
-
-			console.log( this.template_data.pizzas[ el.getAttribute('pizza-index') ].flavours[el.getAttribute('flavour-index')] );
-		}
-	},
-
 	template : `		
 		<ul class="list-wrapper">
 			<div id="likes_wrapper"></div>
@@ -1593,9 +1592,23 @@ function start_app(){
 		</ul>
 	`
 
-});;var ListFlavours = TemplaterList.extend({
+});;var ListFlavourPhones = TemplaterList.extend({
 
-	type : 'ListFlavours',
+	type : 'ListFlavourPhones',
+
+	autopaint : true,
+
+	binds : function(){
+			
+	},
+
+	template : `
+		<li></li>
+	`
+
+});;var ListFlavourPhonesItem = Templater.extend({
+
+	type : 'ListFlavourPhonesItem',
 
 	autopaint : true,
 
@@ -1604,15 +1617,38 @@ function start_app(){
 	},
 
 	events : {
+		'click .removecell' : function(e){		
+			this.template_data.item = "dsadsad";
+		}
+	},
+
+	template : `
+		<li>
+			<input value="{{item}}" /><button class="removecell">Remove Cell</button>
+		</li>
+
+	`
+
+});;var ListFlavours = TemplaterList.extend({
+
+	type : 'ListFlavours',
+
+	autopaint : true,
+
+	binds : function(){		
+		
+	},
+
+	events : {
 		'click .add' : function(){
-			this.template_data.items.push({name : +new Date});
+			this.template_data.items.push({name : +new Date, age : 35, phones : ["dddddddd"]});
 		}
 	},
 
 	template : `
 		<div>
 			<button class="add"> ADD </button>
-			<div class="itemss"></div>
+			<div id="itemss" class="itemss"></div>
 		</div>`
 
 });;var ListFlavoursItem = Templater.extend({
@@ -1621,16 +1657,30 @@ function start_app(){
 
 	autopaint : true,
 
+	binds : function(){		
+		this.phones = new ListFlavourPhones({
+			template_data : {
+				items : this.template_data.item.phones
+			}
+		});
+
+		this.phones.render( this.elements.phones );		
+	},
+
 	events : {
-		'click button' : function(e){			
+		'click .removeall' : function(e){			
 			this.parent.template_data.items.pop( this.index );
+		},
+		'click .removecell' : function(e){			
+			debugger;
 		}
 	},
 
 	template : `
 		<li>
 			<label>{{item.name}}</label>
-			<button>X</button>
+			<ul id="phones"></ul>
+			<button class="removeall">X</button>
 		</li>
 
 	`
