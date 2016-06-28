@@ -43,18 +43,19 @@ var Templater = Base.extend({
 
 	changes : function(){
 		if( JSON.stringify( this.template_data ) !== JSON.stringify( this.binder.template_main ) ){
-			this.deepfind( this.template_data, null, "", "" );
+			this.deepfind( this.template_data, null, "", "", this.binder.template_main );
 		}
 	},
 
-	deepfind : function( where, binder_temp, token, root_label ){
+	deepfind : function( where, binder_temp, token, root_label, main_data ){
 		if( token === undefined ) token = "";
 
-		var binder = this.binder;		
+		var binder = this.binder;
 
 		for( var p in where ){
 			var original = where[ p ],
 			isarray = binder.isarray( original ),
+			main_ = main_data[ p ],
 			clean = isarray || binder.isobject( original ), 
 			track = token + p + clean;
 
@@ -70,7 +71,7 @@ var Templater = Base.extend({
 					if( !dom )
 						dom = this.items[ p ];
 
-					if( dom ){
+					if( dom !== undefined ){
 						dom = dom.length ? dom[0] : dom.dom;
 						dom.textContent ? dom.textContent = original : dom.value = original;
 
@@ -86,9 +87,18 @@ var Templater = Base.extend({
 					break;
 				}
 			}else{
+
+				if( binder.isarray( main_ ) ){
+					if( main_.length !== original.length ){
+						this.binder.template_main = binder.cloneObject( this.template_data );
+
+						break;
+					}
+				}
+
 				binder_ = binder_temp ? binder_temp[p] : binder.template_main[p];
 
-				this.deepfind( original, binder_, track, p );
+				this.deepfind( original, binder_, track, p, main_ );
 			}
 		}
 
@@ -115,6 +125,8 @@ var Templater = Base.extend({
 					original.push = this.push_.bind(this, original, track.slice(0, -1));
 				}
 			}
+
+			if( clean === "" && isarray === "" ) break;
 
 			this.setpushpop( original, track, p );
 		}
@@ -145,9 +157,23 @@ var Templater = Base.extend({
 		item.dom.parentNode.removeChild( item.dom );
 		delete this.items[String(index)];
 
+		this.items = this.redo_indexes( this.items );
+
 		this.binder.template_main = this.binder.cloneObject( this.template_data );	
 	},
 
+	redo_indexes : function( items ){
+		var p, count = 0, new_items = {};
+		
+		for( p in items ){
+			var item = items[ p ];
+			new_items[ count ] = item;
+			item.index = count;
+			count++;
+		}
+
+		return new_items;
+	},
 
 	added_data : function( track_id, item, index ){
 		try{
@@ -159,10 +185,13 @@ var Templater = Base.extend({
 			if( typed ){
 				instance = new typed({ template_data : {item : item} });
 				instance.append( this.dom );
+				instance.parent = this;
+				instance.index = index * 1;
 				
-				for(var i in this.items){};
+				var i = undefined;
+				for(i in this.items){};
 
-				this.items[ (i*1)+1 ] = instance;
+				this.items[ ( i === undefined ? 0 : (i*1)+1) ] = instance;
 			}
 		}
 
@@ -231,6 +260,7 @@ var Templater = Base.extend({
 				}
 			});
 			tt.parent = this;
+			tt.index = i*1;
 			this.items[String(i)] = tt;
 		}
 

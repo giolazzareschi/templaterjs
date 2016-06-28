@@ -60,7 +60,7 @@ var Binder = Base.extend({
 				if( type_array && react)
 					this.lists[ end ] = react; 
 
-				end += this.deep( el, type, end );
+				return this.deep( el, type, end );
 			}else{
 				ends[ end ] = el;
 				root[ pp ] = end;

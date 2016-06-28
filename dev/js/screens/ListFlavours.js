@@ -8,6 +8,16 @@ var ListFlavours = TemplaterList.extend({
 
 	},
 
-	template : `<div class="itemss"></div>`
+	events : {
+		'click .add' : function(){
+			this.template_data.items.push({name : +new Date});
+		}
+	},
+
+	template : `
+		<div>
+			<button class="add"> ADD </button>
+			<div class="itemss"></div>
+		</div>`
 
 });

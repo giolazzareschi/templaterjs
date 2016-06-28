@@ -852,10 +852,12 @@ function start_app(){
 	// var x = performance.now();
 
 	template_data = {
-		pizzas : [
-			{flavours: [57,56,63]},
-			{flavours: [10,20,30]}
-		]
+		pizzas : [{
+			flavours: [
+				{name : 'giordano 1', age : 27},
+				{name : 'giordano 2', age : 27}
+			]
+		}]
 	};
 
 	$list = new List({
@@ -974,7 +976,7 @@ function start_app(){
 				if( type_array && react)
 					this.lists[ end ] = react; 
 
-				end += this.deep( el, type, end );
+				return this.deep( el, type, end );
 			}else{
 				ends[ end ] = el;
 				root[ pp ] = end;
@@ -1159,18 +1161,19 @@ function start_app(){
 
 	changes : function(){
 		if( JSON.stringify( this.template_data ) !== JSON.stringify( this.binder.template_main ) ){
-			this.deepfind( this.template_data, null, "", "" );
+			this.deepfind( this.template_data, null, "", "", this.binder.template_main );
 		}
 	},
 
-	deepfind : function( where, binder_temp, token, root_label ){
+	deepfind : function( where, binder_temp, token, root_label, main_data ){
 		if( token === undefined ) token = "";
 
-		var binder = this.binder;		
+		var binder = this.binder;
 
 		for( var p in where ){
 			var original = where[ p ],
 			isarray = binder.isarray( original ),
+			main_ = main_data[ p ],
 			clean = isarray || binder.isobject( original ), 
 			track = token + p + clean;
 
@@ -1186,7 +1189,7 @@ function start_app(){
 					if( !dom )
 						dom = this.items[ p ];
 
-					if( dom ){
+					if( dom !== undefined ){
 						dom = dom.length ? dom[0] : dom.dom;
 						dom.textContent ? dom.textContent = original : dom.value = original;
 
@@ -1202,9 +1205,18 @@ function start_app(){
 					break;
 				}
 			}else{
+
+				if( binder.isarray( main_ ) ){
+					if( main_.length !== original.length ){
+						this.binder.template_main = binder.cloneObject( this.template_data );
+
+						break;
+					}
+				}
+
 				binder_ = binder_temp ? binder_temp[p] : binder.template_main[p];
 
-				this.deepfind( original, binder_, track, p );
+				this.deepfind( original, binder_, track, p, main_ );
 			}
 		}
 
@@ -1231,6 +1243,8 @@ function start_app(){
 					original.push = this.push_.bind(this, original, track.slice(0, -1));
 				}
 			}
+
+			if( clean === "" && isarray === "" ) break;
 
 			this.setpushpop( original, track, p );
 		}
@@ -1261,9 +1275,23 @@ function start_app(){
 		item.dom.parentNode.removeChild( item.dom );
 		delete this.items[String(index)];
 
+		this.items = this.redo_indexes( this.items );
+
 		this.binder.template_main = this.binder.cloneObject( this.template_data );	
 	},
 
+	redo_indexes : function( items ){
+		var p, count = 0, new_items = {};
+		
+		for( p in items ){
+			var item = items[ p ];
+			new_items[ count ] = item;
+			item.index = count;
+			count++;
+		}
+
+		return new_items;
+	},
 
 	added_data : function( track_id, item, index ){
 		try{
@@ -1275,10 +1303,13 @@ function start_app(){
 			if( typed ){
 				instance = new typed({ template_data : {item : item} });
 				instance.append( this.dom );
+				instance.parent = this;
+				instance.index = index * 1;
 				
-				for(var i in this.items){};
+				var i = undefined;
+				for(i in this.items){};
 
-				this.items[ (i*1)+1 ] = instance;
+				this.items[ ( i === undefined ? 0 : (i*1)+1) ] = instance;
 			}
 		}
 
@@ -1347,6 +1378,7 @@ function start_app(){
 				}
 			});
 			tt.parent = this;
+			tt.index = i*1;
 			this.items[String(i)] = tt;
 		}
 
@@ -1571,7 +1603,17 @@ function start_app(){
 
 	},
 
-	template : `<div class="itemss"></div>`
+	events : {
+		'click .add' : function(){
+			this.template_data.items.push({name : +new Date});
+		}
+	},
+
+	template : `
+		<div>
+			<button class="add"> ADD </button>
+			<div class="itemss"></div>
+		</div>`
 
 });;var ListFlavoursItem = Templater.extend({
 
@@ -1580,14 +1622,15 @@ function start_app(){
 	autopaint : true,
 
 	events : {
-		'click button' : function(e){
-			console.log( this );
+		'click button' : function(e){			
+			this.parent.template_data.items.pop( this.index );
 		}
 	},
 
 	template : `
 		<li>
-			{{item}} <button> X </button>
+			<label>{{item.name}}</label>
+			<button>X</button>
 		</li>
 
 	`

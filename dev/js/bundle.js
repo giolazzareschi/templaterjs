@@ -7,10 +7,12 @@ function start_app(){
 	// var x = performance.now();
 
 	template_data = {
-		pizzas : [
-			{flavours: [57,56,63]},
-			{flavours: [10,20,30]}
-		]
+		pizzas : [{
+			flavours: [
+				{name : 'giordano 1', age : 27},
+				{name : 'giordano 2', age : 27}
+			]
+		}]
 	};
 
 	$list = new List({
