@@ -1181,12 +1181,13 @@ function start_app(){
 
 				if( original !== binder_temp[ p ] ){
 
-					this.binder.template_main = binder.cloneObject( this.template_data );
-
 					var dom = this.binder.template_hdom[track];
 
-					if( dom && dom.length ){
-						dom = dom[0];
+					if( !dom )
+						dom = this.items[ p ];
+
+					if( dom ){
+						dom = dom.length ? dom[0] : dom.dom;
 						dom.textContent ? dom.textContent = original : dom.value = original;
 
 						this.react({
@@ -1195,6 +1196,8 @@ function start_app(){
 							dom : dom
 						});
 					}
+
+					this.binder.template_main = binder.cloneObject( this.template_data );
 
 					break;
 				}

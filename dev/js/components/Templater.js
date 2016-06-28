@@ -65,12 +65,13 @@ var Templater = Base.extend({
 
 				if( original !== binder_temp[ p ] ){
 
-					this.binder.template_main = binder.cloneObject( this.template_data );
-
 					var dom = this.binder.template_hdom[track];
 
-					if( dom && dom.length ){
-						dom = dom[0];
+					if( !dom )
+						dom = this.items[ p ];
+
+					if( dom ){
+						dom = dom.length ? dom[0] : dom.dom;
 						dom.textContent ? dom.textContent = original : dom.value = original;
 
 						this.react({
@@ -79,6 +80,8 @@ var Templater = Base.extend({
 							dom : dom
 						});
 					}
+
+					this.binder.template_main = binder.cloneObject( this.template_data );
 
 					break;
 				}
