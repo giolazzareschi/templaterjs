@@ -159,7 +159,10 @@ var Templater = Base.extend({
 			if( typed ){
 				instance = new typed({ template_data : {item : item} });
 				instance.append( this.dom );
-				this.items['3'] = instance;
+				
+				for(var i in this.items){};
+
+				this.items[ (i*1)+1 ] = instance;
 			}
 		}
 
@@ -221,35 +224,16 @@ var Templater = Base.extend({
 		model.prototype.type = model_name;
 		model.prototype.isListItem = true;
 
-		var tt = new model({
-			template_data : {
-				item : items[0]
-			}
-		});
+		for( var i in items ){
+			var tt = new model({
+				template_data : {
+					item : items[ i ]
+				}
+			});
+			tt.parent = this;
+			this.items[String(i)] = tt;
+		}
 
-		tt.parent = this;
-
-		this.items['0'] = tt;
-
-		tt = new model({
-			template_data : {
-				item : items[1]
-			}
-		});
-
-		tt.parent = this;
-
-		this.items['1'] = tt;
-
-		tt = new model({
-			template_data : {
-				item : items[2]
-			}
-		});
-
-		tt.parent = this;
-
-		this.items['2'] = tt;
 	},
 
 	server_get : function(){		

@@ -6,8 +6,6 @@ var ListFlavours = TemplaterList.extend({
 
 	binds : function(){
 
-		console.log( this.dom );
-
 	},
 
 	template : `<div class="itemss"></div>`

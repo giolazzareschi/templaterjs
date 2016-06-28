@@ -4,6 +4,17 @@ var ListFlavoursItem = Templater.extend({
 
 	autopaint : true,
 
-	template : '<li>{{item}}</li>'
+	events : {
+		'click button' : function(e){
+			console.log( this );
+		}
+	},
+
+	template : `
+		<li>
+			{{item}} <button> X </button>
+		</li>
+
+	`
 
 });
