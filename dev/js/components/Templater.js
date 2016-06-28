@@ -109,8 +109,11 @@ var Templater = Base.extend({
 			if( typeof original === "function ") continue;
 
 			if( clean && isarray ){
-				original.pop = this.pop_.bind(this, original, track.slice(0, -1));
-				original.push = this.push_.bind(this, original, track.slice(0, -1));
+				if( original.$$pushpop === undefined ){
+					original.$$pushpop = +new Date;
+					original.pop = this.pop_.bind(this, original, track.slice(0, -1));
+					original.push = this.push_.bind(this, original, track.slice(0, -1));
+				}
 			}
 
 			this.setpushpop( original, track, p );
@@ -130,7 +133,7 @@ var Templater = Base.extend({
 		
 		array_.splice(index, 0, item);
 
-		this.added_data(track_id, index)
+		this.added_data(track_id, item, index)
 	},
 
 	removed_data : function( track_id, index ){
@@ -146,10 +149,19 @@ var Templater = Base.extend({
 	},
 
 
-	added_data : function( track_id, index ){
+	added_data : function( track_id, item, index ){
 		try{
 			this.reactions[ track_id ].add.apply( this, [{index: index}] );
 		}catch(e){};
+
+		if( this.isList && this.isList === true ){
+			var typed = window[ this.type + 'Item' ], instance;
+			if( typed ){
+				instance = new typed({ template_data : {item : item} });
+				instance.append( this.dom );
+				this.items['3'] = instance;
+			}
+		}
 
 		this.binder.template_main = this.binder.cloneObject( this.template_data );	
 	},
@@ -167,6 +179,7 @@ var Templater = Base.extend({
 		if( this.type === undefined ){
 			throw "Type for Class needed."
 		}else{
+			this.items = {};
 
 			if( args && args.model !== undefined ){
 				args.model.owner = this;
