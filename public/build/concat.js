@@ -854,7 +854,28 @@ function start_app(){
 	template_data = {
 		pizzas : [{
 			flavours: []
-		}]
+		}],
+		places : [
+			{
+				id : 'P1',
+				name : 'Brazil',
+				states : [{ 
+					id : 'S1',
+					name : 'Santa Catarina',
+					cities : [
+						{ id : 'C1', name : 'Joinville' },
+						{ id : 'C2', name : 'Florianópolis' }
+					]
+				},{ 
+					id : 'S2',
+					name : 'Paraná',
+					cities : [
+						{ id : 'C3', name : 'Curitiba' },
+						{ id : 'C4', name : 'Maringá' }
+					]
+				}]
+			}
+		]
 	};
 
 	$list = new List({
@@ -933,9 +954,13 @@ function start_app(){
 
 	ends : {},
 
+	templater : undefined,
+
 	constructor : function( args ){
 
 		this.ends = {};
+
+		this.templater = args.templater;
 
 		if( args && args.template_data )
 			this.template_data = args.template_data;
@@ -976,12 +1001,13 @@ function start_app(){
 			
 			if( type ){
 				
-				if( type_array && react)
+				if( type_array && react )
 					this.lists[ end ] = react; 
 
 				this.deep( el, type, end );
 			}else{
-				this.ends[ end ] = el;				
+				this.ends[ end ] = el;
+				root[ pp ] = end;
 			}
 		}
 
@@ -999,11 +1025,25 @@ function start_app(){
 	track : function(){
 
 		for( index in this.template_hash ){
-			var hash = this.template_hash[ index ],
+			var hash = this.template_hash[ index ], finds, domprops, finaldata = hash ? String(hash) : '\b';
+
+			hash = this.template_hash[ index ];
+			if( !hash ){
+				hash = this.template_hash[ 'item' ];
+				if( hash ){
+					hash = "item";
+
+					if( this.templater.__index !== undefined )
+						hash = hash + '_' + this.templater.__index;
+				}
+			};
+			
 			finds = findAndReplaceDOMText( this.dom , {
 				find : index,
-				replace : String(this.template_hash[ index ])
+				replace : finaldata
 			});
+
+			domprops = [].slice.call( this.dom.querySelectorAll('[value="'+ index +'"]') );
 
 			this.findInputs( this.dom );
 
@@ -1012,6 +1052,11 @@ function start_app(){
 				this.template_hdom[ index ] = this.template_hdom[ index ].concat( finds.doms );
 			}else{
 				this.template_hdom[ index ] = finds.doms;
+			}
+
+			if( domprops.length > 0 ){
+				for( dp in domprops ) domprops[ dp ].value = finaldata;
+				this.template_hdom[ index ] = this.template_hdom[ index ].concat( domprops );
 			}
 
 			this.mutationdom( this.template_hdom[ index ], index );
@@ -1038,6 +1083,9 @@ function start_app(){
 			}
 
 			if( data ){
+				if( this.templater.__index !== undefined )
+					hash = hash + '_' + this.templater.__index;
+
 				hdom = this.template_hdom[ hash ];
 				
 				input.$$templater = hash;
@@ -1059,15 +1107,12 @@ function start_app(){
 		var i = 0, qt = doms.length;
 
 		for( ; i < qt ; i++ ){
-			var dom = doms[ i ];
+			var dom = doms[ i ]
+			, MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver
+			, observer = new MutationObserver(function(mutations) {
+				mutations.forEach(function(mutation) { }); })
 
-			var observer = new MutationObserver(function(mutations) {
-				mutations.forEach(function(mutation) {
-					
-				});    
-			});
-
-			var config = { attributes: true, childList: true, characterData: true };
+			, config = { attributes: true, childList: true, characterData: true };
 
 			observer.observe(dom, config);
 
@@ -1077,16 +1122,19 @@ function start_app(){
 	},
 
 	set_data : function( index_track, value ){
-		var el = this.get_data( index_track );
+		var el = this.get_data( index_track ), parent = this.templater.__parent;
 
-		el.data[ el.index ] = value;
+		if( parent )
+			parent.template_data.items[this.templater.__index] = value;
+		else
+			this.template_data[ el.index ] = value;
 	},
 
 	get_data : function( index_track ){
 		var indexes = index_track.split(/[\.]|\_/), data, count=1, end = indexes.length, index;
 
 		for(var i in indexes){
-			if( count++ < end )
+			if( count++ <= end )
 				data = !data ? this.template_data[ indexes[ i ] ] : data[ indexes [ i ] ];			
 
 			index = indexes[ i ];
@@ -1194,12 +1242,15 @@ function start_app(){
 
 					var dom = this.binder.template_hdom[track];
 
-					if( !dom )
+					if( !dom || !dom.length ){
 						dom = this.items[ p ];
+						if( dom && dom.__parent !== undefined )
+							dom = dom.binder.template_hdom['item_' + p];
+					}
 
 					if( dom !== undefined && dom.length > 0 ){
 						dom = dom.length ? dom[0] : dom.dom;
-						dom.textContent ? dom.textContent = original : dom.value = original;
+						dom.value !== undefined ? dom.value = original : dom.textContent !== undefined ? dom.textContent = original : '';						
 
 						this.react({
 							changed : p,
@@ -1259,7 +1310,7 @@ function start_app(){
 	},
 
 	pop_ : function( array_, track_id, index ){
-		index = index === undefined || index === null ? array_.length : index;
+		index = index === undefined || index === null ? array_.length-1 : index;
 		
 		array_.splice(index, 1);
 
@@ -1309,10 +1360,13 @@ function start_app(){
 		if( this.isList && this.isList === true ){
 			var typed = window[ this.type + 'Item' ], instance;
 			if( typed ){
-				instance = new typed({ template_data : {item : item} });
+				instance = new typed({ 
+					__parent : this,
+					__index : index * 1,
+					template_data : {item : item} 
+				});
+
 				instance.append( this.dom );
-				instance.parent = this;
-				instance.index = index * 1;
 				
 				var i = undefined;
 				for(i in this.items){};
@@ -1350,6 +1404,12 @@ function start_app(){
 			if( args && args.template !== undefined && args.template !== '' )
 				this.template = args.template;
 
+			if( args && args.__parent !== undefined )
+				this.__parent = args.__parent;
+
+			if( args && args.__index !== undefined )
+				this.__index = args.__index;
+
 			if( args && args.template_data !== undefined )
 				this.template_data = args.template_data;
 
@@ -1381,12 +1441,13 @@ function start_app(){
 
 		for( var i in items ){
 			var tt = new model({
+				__parent : this,
+				__index  : i*1,
 				template_data : {
 					item : items[ i ]
 				}
 			});
-			tt.parent = this;
-			tt.index = i*1;
+
 			this.items[String(i)] = tt;
 		}
 
@@ -1416,8 +1477,9 @@ function start_app(){
 
 	update_dom : function( rollback_dom ){
 
-		if( this.autopaint ){			
+		if( this.autopaint ){
 			var binder = new Binder({
+				templater : this,
 				template_data : this.template_data
 			});
 			this.binder = binder;
@@ -1574,6 +1636,15 @@ function start_app(){
 		});
 
 		this.flavours.render( this.elements.list_here );
+
+		this.places = new Places({
+			template_data : {
+				places: this.template_data.places
+			}
+		});
+
+		this.places.render( this.elements.placeshere );
+
 	},
 
 	reactions : {
@@ -1589,6 +1660,7 @@ function start_app(){
 		<ul class="list-wrapper">
 			<div id="likes_wrapper"></div>
 			<ul id="list_here"></ul>
+			<ul id="placeshere"></ul>
 		</ul>
 	`
 
@@ -1617,8 +1689,8 @@ function start_app(){
 	},
 
 	events : {
-		'click .removecell' : function(e){		
-			this.template_data.item = "dsadsad";
+		'click .removecell' : function(e){					
+			this.__parent.template_data.items[ this.__index ] = 'dsad';
 		}
 	},
 
@@ -1669,7 +1741,7 @@ function start_app(){
 
 	events : {
 		'click .removeall' : function(e){			
-			this.parent.template_data.items.pop( this.index );
+			this.__parent.template_data.items.pop( this.__index );
 		},
 		'click .removecell' : function(e){			
 			debugger;
@@ -1683,6 +1755,50 @@ function start_app(){
 			<button class="removeall">X</button>
 		</li>
 
+	`
+
+});;var Places = Templater.extend({
+
+	type : 'Places',
+
+	autopaint : true,
+
+	binds : function(){		
+		
+	},
+
+	events : {
+		'change #states' : function(e){
+			debugger;
+		}
+	},
+
+	template : `
+		<div>
+			<select id="countries">
+			{{#each places}}
+				<option value="{{id}}">{{name}}</option>
+			{{/each}}
+			</select>
+			
+			<select id="states">
+			{{#each places}}
+				{{#each states}}
+					<option value="{{id}}">{{name}}</option>
+				{{/each}}
+			{{/each}}
+			</select>
+
+			<select id="cities">
+			{{#each places}}
+				{{#each states}}
+					{{#each cities}}
+						<option value="{{id}}">{{name}}</option>
+					{{/each}}
+				{{/each}}
+			{{/each}}
+			</select>
+		</div>
 	`
 
 });

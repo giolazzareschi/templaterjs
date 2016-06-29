@@ -16,7 +16,7 @@ var ListFlavoursItem = Templater.extend({
 
 	events : {
 		'click .removeall' : function(e){			
-			this.parent.template_data.items.pop( this.index );
+			this.__parent.template_data.items.pop( this.__index );
 		},
 		'click .removecell' : function(e){			
 			debugger;

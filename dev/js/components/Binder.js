@@ -20,9 +20,13 @@ var Binder = Base.extend({
 
 	ends : {},
 
+	templater : undefined,
+
 	constructor : function( args ){
 
 		this.ends = {};
+
+		this.templater = args.templater;
 
 		if( args && args.template_data )
 			this.template_data = args.template_data;
@@ -63,12 +67,13 @@ var Binder = Base.extend({
 			
 			if( type ){
 				
-				if( type_array && react)
+				if( type_array && react )
 					this.lists[ end ] = react; 
 
 				this.deep( el, type, end );
 			}else{
-				this.ends[ end ] = el;				
+				this.ends[ end ] = el;
+				root[ pp ] = end;
 			}
 		}
 
@@ -86,11 +91,25 @@ var Binder = Base.extend({
 	track : function(){
 
 		for( index in this.template_hash ){
-			var hash = this.template_hash[ index ],
+			var hash = this.template_hash[ index ], finds, domprops, finaldata = hash ? String(hash) : '\b';
+
+			hash = this.template_hash[ index ];
+			if( !hash ){
+				hash = this.template_hash[ 'item' ];
+				if( hash ){
+					hash = "item";
+
+					if( this.templater.__index !== undefined )
+						hash = hash + '_' + this.templater.__index;
+				}
+			};
+			
 			finds = findAndReplaceDOMText( this.dom , {
 				find : index,
-				replace : String(this.template_hash[ index ])
+				replace : finaldata
 			});
+
+			domprops = [].slice.call( this.dom.querySelectorAll('[value="'+ index +'"]') );
 
 			this.findInputs( this.dom );
 
@@ -99,6 +118,11 @@ var Binder = Base.extend({
 				this.template_hdom[ index ] = this.template_hdom[ index ].concat( finds.doms );
 			}else{
 				this.template_hdom[ index ] = finds.doms;
+			}
+
+			if( domprops.length > 0 ){
+				for( dp in domprops ) domprops[ dp ].value = finaldata;
+				this.template_hdom[ index ] = this.template_hdom[ index ].concat( domprops );
 			}
 
 			this.mutationdom( this.template_hdom[ index ], index );
@@ -125,6 +149,9 @@ var Binder = Base.extend({
 			}
 
 			if( data ){
+				if( this.templater.__index !== undefined )
+					hash = hash + '_' + this.templater.__index;
+
 				hdom = this.template_hdom[ hash ];
 				
 				input.$$templater = hash;
@@ -146,15 +173,12 @@ var Binder = Base.extend({
 		var i = 0, qt = doms.length;
 
 		for( ; i < qt ; i++ ){
-			var dom = doms[ i ];
+			var dom = doms[ i ]
+			, MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver
+			, observer = new MutationObserver(function(mutations) {
+				mutations.forEach(function(mutation) { }); })
 
-			var observer = new MutationObserver(function(mutations) {
-				mutations.forEach(function(mutation) {
-					
-				});    
-			});
-
-			var config = { attributes: true, childList: true, characterData: true };
+			, config = { attributes: true, childList: true, characterData: true };
 
 			observer.observe(dom, config);
 
@@ -164,16 +188,19 @@ var Binder = Base.extend({
 	},
 
 	set_data : function( index_track, value ){
-		var el = this.get_data( index_track );
+		var el = this.get_data( index_track ), parent = this.templater.__parent;
 
-		el.data[ el.index ] = value;
+		if( parent )
+			parent.template_data.items[this.templater.__index] = value;
+		else
+			this.template_data[ el.index ] = value;
 	},
 
 	get_data : function( index_track ){
 		var indexes = index_track.split(/[\.]|\_/), data, count=1, end = indexes.length, index;
 
 		for(var i in indexes){
-			if( count++ < end )
+			if( count++ <= end )
 				data = !data ? this.template_data[ indexes[ i ] ] : data[ indexes [ i ] ];			
 
 			index = indexes[ i ];

@@ -68,12 +68,15 @@ var Templater = Base.extend({
 
 					var dom = this.binder.template_hdom[track];
 
-					if( !dom )
+					if( !dom || !dom.length ){
 						dom = this.items[ p ];
+						if( dom && dom.__parent !== undefined )
+							dom = dom.binder.template_hdom['item_' + p];
+					}
 
 					if( dom !== undefined && dom.length > 0 ){
 						dom = dom.length ? dom[0] : dom.dom;
-						dom.textContent ? dom.textContent = original : dom.value = original;
+						dom.value !== undefined ? dom.value = original : dom.textContent !== undefined ? dom.textContent = original : '';						
 
 						this.react({
 							changed : p,
@@ -133,7 +136,7 @@ var Templater = Base.extend({
 	},
 
 	pop_ : function( array_, track_id, index ){
-		index = index === undefined || index === null ? array_.length : index;
+		index = index === undefined || index === null ? array_.length-1 : index;
 		
 		array_.splice(index, 1);
 
@@ -183,10 +186,13 @@ var Templater = Base.extend({
 		if( this.isList && this.isList === true ){
 			var typed = window[ this.type + 'Item' ], instance;
 			if( typed ){
-				instance = new typed({ template_data : {item : item} });
+				instance = new typed({ 
+					__parent : this,
+					__index : index * 1,
+					template_data : {item : item} 
+				});
+
 				instance.append( this.dom );
-				instance.parent = this;
-				instance.index = index * 1;
 				
 				var i = undefined;
 				for(i in this.items){};
@@ -224,6 +230,12 @@ var Templater = Base.extend({
 			if( args && args.template !== undefined && args.template !== '' )
 				this.template = args.template;
 
+			if( args && args.__parent !== undefined )
+				this.__parent = args.__parent;
+
+			if( args && args.__index !== undefined )
+				this.__index = args.__index;
+
 			if( args && args.template_data !== undefined )
 				this.template_data = args.template_data;
 
@@ -255,12 +267,13 @@ var Templater = Base.extend({
 
 		for( var i in items ){
 			var tt = new model({
+				__parent : this,
+				__index  : i*1,
 				template_data : {
 					item : items[ i ]
 				}
 			});
-			tt.parent = this;
-			tt.index = i*1;
+
 			this.items[String(i)] = tt;
 		}
 
@@ -290,8 +303,9 @@ var Templater = Base.extend({
 
 	update_dom : function( rollback_dom ){
 
-		if( this.autopaint ){			
+		if( this.autopaint ){
 			var binder = new Binder({
+				templater : this,
 				template_data : this.template_data
 			});
 			this.binder = binder;

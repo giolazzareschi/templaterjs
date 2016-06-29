@@ -13,6 +13,15 @@ var List = Templater.extend({
 		});
 
 		this.flavours.render( this.elements.list_here );
+
+		this.places = new Places({
+			template_data : {
+				places: this.template_data.places
+			}
+		});
+
+		this.places.render( this.elements.placeshere );
+
 	},
 
 	reactions : {
@@ -28,6 +37,7 @@ var List = Templater.extend({
 		<ul class="list-wrapper">
 			<div id="likes_wrapper"></div>
 			<ul id="list_here"></ul>
+			<ul id="placeshere"></ul>
 		</ul>
 	`
 

@@ -9,7 +9,28 @@ function start_app(){
 	template_data = {
 		pizzas : [{
 			flavours: []
-		}]
+		}],
+		places : [
+			{
+				id : 'P1',
+				name : 'Brazil',
+				states : [{ 
+					id : 'S1',
+					name : 'Santa Catarina',
+					cities : [
+						{ id : 'C1', name : 'Joinville' },
+						{ id : 'C2', name : 'Florianópolis' }
+					]
+				},{ 
+					id : 'S2',
+					name : 'Paraná',
+					cities : [
+						{ id : 'C3', name : 'Curitiba' },
+						{ id : 'C4', name : 'Maringá' }
+					]
+				}]
+			}
+		]
 	};
 
 	$list = new List({

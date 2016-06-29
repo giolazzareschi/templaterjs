@@ -9,8 +9,8 @@ var ListFlavourPhonesItem = Templater.extend({
 	},
 
 	events : {
-		'click .removecell' : function(e){		
-			this.template_data.item = "dsadsad";
+		'click .removecell' : function(e){					
+			this.__parent.template_data.items[ this.__index ] = 'dsad';
 		}
 	},
 
