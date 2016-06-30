@@ -139,53 +139,38 @@ var Templater = Base.extend({
 	},
 
 	pop_ : function( array_, track_id, index ){
+		this.items = this.reindex( this.items );
+
 		index = index === undefined || index === null ? array_.length-1 : index;
 		
 		array_.splice(index, 1);
+
 
 		this.removed_data(track_id, index)
 	},
 
 	push_ : function( array_, track_id, item, index ){
+		this.items = this.reindex( this.items );
+
 		index = index === undefined || index === null ? array_.length : index;
 		
 		array_.splice(index, 0, item);
+
 
 		this.added_data(track_id, item, index)
 	},
 
 	removed_data : function( track_id, index ){
-		try{
-			this.reactions[ track_id ].remove.apply( this, [{index: index}] );
-		}catch(e){};
-
 		var item = this.items[ index ];
 		item.dom.parentNode.removeChild( item.dom );
 		delete this.items[String(index)];
 
-		this.items = this.redo_indexes( this.items );
+		this.items = this.reindex( this.items );
 
 		this.binder.template_main = this.binder.cloneObject( this.template_data );	
 	},
 
-	redo_indexes : function( items ){
-		var p, count = 0, new_items = {};
-		
-		for( p in items ){
-			var item = items[ p ];
-			new_items[ count ] = item;
-			item.index = count;
-			count++;
-		}
-
-		return new_items;
-	},
-
 	added_data : function( track_id, item, index ){
-		try{
-			this.reactions[ track_id ].add.apply( this, [{index: index}] );
-		}catch(e){};
-
 		if( this.isList && this.isList === true ){
 			var typed = window[ this.type + 'Item' ], instance;
 			if( typed ){
@@ -204,7 +189,20 @@ var Templater = Base.extend({
 			}
 		}
 
+		this.items = this.reindex( this.items );
+
 		this.binder.template_main = this.binder.cloneObject( this.template_data );	
+	},
+
+	reindex : function( items ){
+		var count = 0, new_items = {};
+		for( var index in items ){
+			var item = items[ index ];
+			item.__index = count;
+			new_items[ count ] = item;
+			count++;
+		}
+		return new_items;
 	},
 
 	react : function( data ){

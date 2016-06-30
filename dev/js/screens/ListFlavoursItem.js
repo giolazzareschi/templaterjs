@@ -11,7 +11,17 @@ var ListFlavoursItem = Templater.extend({
 			}
 		});
 
-		this.phones.render( this.elements.phones );		
+		this.phones.render( this.elements.phones );
+
+		this.update_time();
+	},
+
+	update_time : function(){
+		var me = this;
+		
+		setInterval(function(){
+			me.template_data.item.name = +new Date;			
+		}, 1000);
 	},
 
 	events : {
