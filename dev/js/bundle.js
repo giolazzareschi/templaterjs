@@ -10,8 +10,10 @@ function start_app(){
 		pizzas : [{
 			flavours: []
 		}],
-		places : [
-			{
+		places : {
+			pageid : 'PAGEDDD',
+			cssClass : 'warn',
+			countries : {
 				id : 'P1',
 				name : 'Brazil',
 				states : [{ 
@@ -30,7 +32,7 @@ function start_app(){
 					]
 				}]
 			}
-		]
+		}
 	};
 
 	$list = new List({

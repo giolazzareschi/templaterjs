@@ -8,6 +8,10 @@ var Places = Templater.extend({
 		
 	},
 
+	success : function(){
+		this.template_data.places.cssClass += "success";
+	},
+
 	events : {
 		'change #states' : function(e){
 			debugger;
@@ -15,30 +19,10 @@ var Places = Templater.extend({
 	},
 
 	template : `
-		<div>
-			<select id="countries">
-			{{#each places}}
-				<option value="{{id}}">{{name}}</option>
-			{{/each}}
-			</select>
-			
-			<select id="states">
-			{{#each places}}
-				{{#each states}}
-					<option value="{{id}}">{{name}}</option>
-				{{/each}}
-			{{/each}}
-			</select>
-
-			<select id="cities">
-			{{#each places}}
-				{{#each states}}
-					{{#each cities}}
-						<option value="{{id}}">{{name}}</option>
-					{{/each}}
-				{{/each}}
-			{{/each}}
-			</select>
+		<div place="{{places.pageid}}" class="{{places.cssClass}}">
+			<div class="{{places.cssClass}}">
+				{{places.pageid}}
+			</div>
 		</div>
 	`
 

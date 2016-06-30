@@ -75,14 +75,17 @@ var Templater = Base.extend({
 					}
 
 					if( dom !== undefined && dom.length > 0 ){
-						dom = dom.length ? dom[0] : dom.dom;
-						dom.value !== undefined ? dom.value = original : dom.textContent !== undefined ? dom.textContent = original : '';						
+						for(dd in dom){
+							var dom_ = dom[ dd ];
 
-						this.react({
-							changed : p,
-							where : root_label,
-							dom : dom
-						});
+							dom_.value !== undefined ? dom_.value = original : dom_.textContent !== undefined ? dom_.textContent = original : '';
+
+							this.react({
+								changed : p,
+								where : root_label,
+								dom : dom_
+							});
+						}
 					}
 
 					this.binder.template_main = binder.cloneObject( this.template_data );

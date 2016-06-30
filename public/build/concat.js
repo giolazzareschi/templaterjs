@@ -855,8 +855,10 @@ function start_app(){
 		pizzas : [{
 			flavours: []
 		}],
-		places : [
-			{
+		places : {
+			pageid : 'PAGEDDD',
+			cssClass : 'warn',
+			countries : {
 				id : 'P1',
 				name : 'Brazil',
 				states : [{ 
@@ -875,7 +877,7 @@ function start_app(){
 					]
 				}]
 			}
-		]
+		}
 	};
 
 	$list = new List({
@@ -1024,6 +1026,8 @@ function start_app(){
 
 	track : function(){
 
+		var tt = "";
+
 		for( index in this.template_hash ){
 			var hash = this.template_hash[ index ], finds, domprops, finaldata = hash ? String(hash) : '\b';
 
@@ -1043,7 +1047,7 @@ function start_app(){
 				replace : finaldata
 			});
 
-			domprops = [].slice.call( this.dom.querySelectorAll('[value="'+ index +'"]') );
+			// domprops = [].slice.call( this.dom.querySelectorAll('[value="'+ index +'"]') );
 
 			this.findInputs( this.dom );
 
@@ -1054,10 +1058,10 @@ function start_app(){
 				this.template_hdom[ index ] = finds.doms;
 			}
 
-			if( domprops.length > 0 ){
-				for( dp in domprops ) domprops[ dp ].value = finaldata;
-				this.template_hdom[ index ] = this.template_hdom[ index ].concat( domprops );
-			}
+			// if( domprops.length > 0 ){
+			// 	for( dp in domprops ) domprops[ dp ].value = finaldata;
+			// 	this.template_hdom[ index ] = this.template_hdom[ index ].concat( domprops );
+			// }
 
 			this.mutationdom( this.template_hdom[ index ], index );
 
@@ -1067,6 +1071,35 @@ function start_app(){
 				}
 			});
 
+		}
+
+		var dom = this.dom, children = this.dom.children, i = 0, qt = children.length;
+		for( ; i < qt ; i++ ){
+			var child = children[ i ];
+
+			var ss = Array.prototype.slice.call(child.attributes);
+			if( ss !== undefined && ss.length > 0 ){
+				var i=0 , qt = ss.length; 
+				for( ; i<qt; i++ ){
+					var d = ss[ i ], hash = this.template_hash[ d.value ];
+					if( d && hash ){
+						this.template_hdom[ d.value ].push( d );
+						d.value = hash;
+					}
+				}	
+			}
+		}
+
+		var tt = Array.prototype.slice.call(dom.attributes);
+		if( tt !== undefined && tt.length > 0 ){
+			var i=0 , qt = tt.length; 
+			for( ; i<qt; i++ ){
+				var d = tt[ i ], hash = this.template_hash[ d.value ];
+				if( d && hash ){
+					this.template_hdom[ d.value ].push( d );
+					d.value = hash;
+				}
+			}
 		}
 	},
 
@@ -1249,14 +1282,17 @@ function start_app(){
 					}
 
 					if( dom !== undefined && dom.length > 0 ){
-						dom = dom.length ? dom[0] : dom.dom;
-						dom.value !== undefined ? dom.value = original : dom.textContent !== undefined ? dom.textContent = original : '';						
+						for(dd in dom){
+							var dom_ = dom[ dd ];
 
-						this.react({
-							changed : p,
-							where : root_label,
-							dom : dom
-						});
+							dom_.value !== undefined ? dom_.value = original : dom_.textContent !== undefined ? dom_.textContent = original : '';
+
+							this.react({
+								changed : p,
+								where : root_label,
+								dom : dom_
+							});
+						}
 					}
 
 					this.binder.template_main = binder.cloneObject( this.template_data );
@@ -1767,6 +1803,10 @@ function start_app(){
 		
 	},
 
+	success : function(){
+		this.template_data.places.cssClass += "success";
+	},
+
 	events : {
 		'change #states' : function(e){
 			debugger;
@@ -1774,30 +1814,10 @@ function start_app(){
 	},
 
 	template : `
-		<div>
-			<select id="countries">
-			{{#each places}}
-				<option value="{{id}}">{{name}}</option>
-			{{/each}}
-			</select>
-			
-			<select id="states">
-			{{#each places}}
-				{{#each states}}
-					<option value="{{id}}">{{name}}</option>
-				{{/each}}
-			{{/each}}
-			</select>
-
-			<select id="cities">
-			{{#each places}}
-				{{#each states}}
-					{{#each cities}}
-						<option value="{{id}}">{{name}}</option>
-					{{/each}}
-				{{/each}}
-			{{/each}}
-			</select>
+		<div place="{{places.pageid}}" class="{{places.cssClass}}">
+			<div class="{{places.cssClass}}">
+				{{places.pageid}}
+			</div>
 		</div>
 	`
 

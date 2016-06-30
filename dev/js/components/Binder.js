@@ -90,6 +90,8 @@ var Binder = Base.extend({
 
 	track : function(){
 
+		var tt = "";
+
 		for( index in this.template_hash ){
 			var hash = this.template_hash[ index ], finds, domprops, finaldata = hash ? String(hash) : '\b';
 
@@ -109,7 +111,7 @@ var Binder = Base.extend({
 				replace : finaldata
 			});
 
-			domprops = [].slice.call( this.dom.querySelectorAll('[value="'+ index +'"]') );
+			// domprops = [].slice.call( this.dom.querySelectorAll('[value="'+ index +'"]') );
 
 			this.findInputs( this.dom );
 
@@ -120,10 +122,10 @@ var Binder = Base.extend({
 				this.template_hdom[ index ] = finds.doms;
 			}
 
-			if( domprops.length > 0 ){
-				for( dp in domprops ) domprops[ dp ].value = finaldata;
-				this.template_hdom[ index ] = this.template_hdom[ index ].concat( domprops );
-			}
+			// if( domprops.length > 0 ){
+			// 	for( dp in domprops ) domprops[ dp ].value = finaldata;
+			// 	this.template_hdom[ index ] = this.template_hdom[ index ].concat( domprops );
+			// }
 
 			this.mutationdom( this.template_hdom[ index ], index );
 
@@ -133,6 +135,35 @@ var Binder = Base.extend({
 				}
 			});
 
+		}
+
+		var dom = this.dom, children = this.dom.children, i = 0, qt = children.length;
+		for( ; i < qt ; i++ ){
+			var child = children[ i ];
+
+			var ss = Array.prototype.slice.call(child.attributes);
+			if( ss !== undefined && ss.length > 0 ){
+				var i=0 , qt = ss.length; 
+				for( ; i<qt; i++ ){
+					var d = ss[ i ], hash = this.template_hash[ d.value ];
+					if( d && hash ){
+						this.template_hdom[ d.value ].push( d );
+						d.value = hash;
+					}
+				}	
+			}
+		}
+
+		var tt = Array.prototype.slice.call(dom.attributes);
+		if( tt !== undefined && tt.length > 0 ){
+			var i=0 , qt = tt.length; 
+			for( ; i<qt; i++ ){
+				var d = tt[ i ], hash = this.template_hash[ d.value ];
+				if( d && hash ){
+					this.template_hdom[ d.value ].push( d );
+					d.value = hash;
+				}
+			}
 		}
 	},
 
