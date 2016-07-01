@@ -60,3 +60,21 @@ function start_app(){
 	$list.render( document.querySelector('#entry_point') );
 
 };
+
+create_items = function(parent){	
+	var items = parent.template_data.$$item__.items, model_name = parent.type + 'Item', model = window[model_name], cc = 0;
+
+	model.prototype.type = model_name;
+	model.prototype.isListItem = true;
+
+	for( var i in items ){
+		var tt = new model({
+			__parent : parent,
+			__index  : cc*1,
+			template_data : items[ i ]
+		});
+
+		parent.items[String(cc)] = tt;
+		cc++;
+	}	
+}

@@ -904,7 +904,25 @@ function start_app(){
 	
 	$list.render( document.querySelector('#entry_point') );
 
-};;var Ajax = Base.extend({
+};
+
+create_items = function(parent){	
+	var items = parent.template_data.$$item__.items, model_name = parent.type + 'Item', model = window[model_name], cc = 0;
+
+	model.prototype.type = model_name;
+	model.prototype.isListItem = true;
+
+	for( var i in items ){
+		var tt = new model({
+			__parent : parent,
+			__index  : cc*1,
+			template_data : items[ i ]
+		});
+
+		parent.items[String(cc)] = tt;
+		cc++;
+	}	
+};var Ajax = Base.extend({
 
 	xhr : undefined,
 
@@ -1433,6 +1451,7 @@ function start_app(){
 			throw "Type for Class needed."
 		}else{
 			this.items = {};
+			this.template_data = {};
 
 			if( args && args.model !== undefined ){
 				args.model.owner = this;
@@ -1454,15 +1473,15 @@ function start_app(){
 			if( args && args.template_data !== undefined )
 				this.template_data.$$item__ = args.template_data;
 
-			if( this.isList )
-				if( this.template_data.$$item__ !== undefined )
-					this.create_items();
-
 			if( args && args.events !== undefined )
 				this.events = args.events;
 
 			if( args && args.parent !== undefined )
 				this.parent = args.parent;
+			
+			if( this.isList )
+				if( this.template_data.$$item__ !== undefined )
+					create_items(this);
 
 			if( this.template !== '' )
 				this.update_dom();
@@ -1472,25 +1491,6 @@ function start_app(){
 				this.listenpaint();
 			}
 		}
-	},
-
-	create_items : function(){		
-		var items = this.template_data.$$item__.items, model_name = this.type + 'Item', model = window[model_name], cc = 0;
-
-		model.prototype.type = model_name;
-		model.prototype.isListItem = true;
-	
-		for( var i in items ){
-			var tt = new model({
-				__parent : this,
-				__index  : cc*1,
-				template_data : items[ i ]
-			});
-
-			this.items[String(cc)] = tt;
-			cc++;
-		}
-
 	},
 
 	server_get : function(){		
