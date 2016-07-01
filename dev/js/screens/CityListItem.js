@@ -14,6 +14,6 @@ var CityListItem = Templater.extend({
 		}
 	},
 
-	template : `<li class="{{item.css.selected}}">{{item.name}}</li>`
+	template : `<li class="{{css.selected}}">{{name}}</li>`
 
 });

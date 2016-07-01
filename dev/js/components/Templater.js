@@ -181,7 +181,7 @@ var Templater = Base.extend({
 				instance = new typed({ 
 					__parent : this,
 					__index : index * 1,
-					template_data : {item : item} 
+					template_data : item
 				});
 
 				instance.append( this.dom );
@@ -242,10 +242,10 @@ var Templater = Base.extend({
 				this.__index = args.__index;
 
 			if( args && args.template_data !== undefined )
-				this.template_data = args.template_data;
+				this.template_data.$$item__ = args.template_data;
 
 			if( this.isList )
-				if( this.template_data.items !== undefined )
+				if( this.template_data.$$item__ !== undefined )
 					this.create_items();
 
 			if( args && args.events !== undefined )
@@ -265,18 +265,16 @@ var Templater = Base.extend({
 	},
 
 	create_items : function(){		
-		var items = this.template_data.items, model_name = this.type + 'Item', model = window[model_name], cc = 0;
+		var items = this.template_data.$$item__.items, model_name = this.type + 'Item', model = window[model_name], cc = 0;
 
 		model.prototype.type = model_name;
 		model.prototype.isListItem = true;
-		
+	
 		for( var i in items ){
 			var tt = new model({
 				__parent : this,
 				__index  : cc*1,
-				template_data : {
-					item : items[ i ]
-				}
+				template_data : items[ i ]
 			});
 
 			this.items[String(cc)] = tt;
@@ -291,7 +289,7 @@ var Templater = Base.extend({
 
 	hbs : function(){
 		this.update_child_template();		
-		var tpl = !this.autopaint ? this.template_data : this.binder.template_memo;
+		var tpl = !this.autopaint ? this.template_data : (this.binder.template_memo["$$item__"] || this.binder.template_memo);
 		return Handlebars.compile( this.template )( tpl );
 	},
 

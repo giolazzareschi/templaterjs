@@ -51,7 +51,7 @@ function start_app(){
 
 	window.$list = new CityList({
 		template_data : {
-			cssClass : 'dsadsa',
+			cssClass : 'city-list',
 			limit : 'sda',
 			items : city_list
 		}

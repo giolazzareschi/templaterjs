@@ -896,7 +896,7 @@ function start_app(){
 
 	window.$list = new CityList({
 		template_data : {
-			cssClass : 'dsadsa',
+			cssClass : 'city-list',
 			limit : 'sda',
 			items : city_list
 		}
@@ -1043,13 +1043,13 @@ function start_app(){
 
 	track : function(){
 
-		var tt = "";
+		var tt = "", me = this;
 
 		for( index in this.template_hash ){
 			var hash = this.template_hash[ index ], finds, domprops, finaldata = hash ? String(hash) : '\b';
 
 			hash = this.template_hash[ index ];
-			if( !hash ){
+			if( hash === undefined ){
 				hash = this.template_hash[ 'item' ];
 				if( hash ){
 					hash = "item";
@@ -1074,20 +1074,6 @@ function start_app(){
 			}else{
 				this.template_hdom[ index ] = finds.doms;
 			}
-
-			// if( domprops.length > 0 ){
-			// 	for( dp in domprops ) domprops[ dp ].value = finaldata;
-			// 	this.template_hdom[ index ] = this.template_hdom[ index ].concat( domprops );
-			// }
-
-			this.mutationdom( this.template_hdom[ index ], index );
-
-			this.template_hdom[ index ].forEach(function(el){
-				if( el.$$templater === undefined ){
-					el.$$templater = index;
-				}
-			});
-
 		}
 
 		var dom = this.dom, children = this.dom.children, i = 0, qt = children.length;
@@ -1405,7 +1391,7 @@ function start_app(){
 				instance = new typed({ 
 					__parent : this,
 					__index : index * 1,
-					template_data : {item : item} 
+					template_data : item
 				});
 
 				instance.append( this.dom );
@@ -1466,10 +1452,10 @@ function start_app(){
 				this.__index = args.__index;
 
 			if( args && args.template_data !== undefined )
-				this.template_data = args.template_data;
+				this.template_data.$$item__ = args.template_data;
 
 			if( this.isList )
-				if( this.template_data.items !== undefined )
+				if( this.template_data.$$item__ !== undefined )
 					this.create_items();
 
 			if( args && args.events !== undefined )
@@ -1489,18 +1475,16 @@ function start_app(){
 	},
 
 	create_items : function(){		
-		var items = this.template_data.items, model_name = this.type + 'Item', model = window[model_name], cc = 0;
+		var items = this.template_data.$$item__.items, model_name = this.type + 'Item', model = window[model_name], cc = 0;
 
 		model.prototype.type = model_name;
 		model.prototype.isListItem = true;
-		
+	
 		for( var i in items ){
 			var tt = new model({
 				__parent : this,
 				__index  : cc*1,
-				template_data : {
-					item : items[ i ]
-				}
+				template_data : items[ i ]
 			});
 
 			this.items[String(cc)] = tt;
@@ -1515,7 +1499,7 @@ function start_app(){
 
 	hbs : function(){
 		this.update_child_template();		
-		var tpl = !this.autopaint ? this.template_data : this.binder.template_memo;
+		var tpl = !this.autopaint ? this.template_data : (this.binder.template_memo["$$item__"] || this.binder.template_memo);
 		return Handlebars.compile( this.template )( tpl );
 	},
 
@@ -1675,7 +1659,7 @@ function start_app(){
 		
 	},
 
-	template : `<ul class="city-list {{cssClass}}"><div>{{limit}}</div></ul>`
+	template : `<ul class="{{cssClass}}"></ul>`
 
 });;var CityListItem = Templater.extend({
 
@@ -1693,7 +1677,7 @@ function start_app(){
 		}
 	},
 
-	template : `<li class="{{item.css.selected}}">{{item.name}}</li>`
+	template : `<li class="{{css.selected}}">{{name}}</li>`
 
 });;var Likes = Templater.extend({
 

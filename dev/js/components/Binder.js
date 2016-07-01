@@ -90,13 +90,13 @@ var Binder = Base.extend({
 
 	track : function(){
 
-		var tt = "";
+		var tt = "", me = this;
 
 		for( index in this.template_hash ){
 			var hash = this.template_hash[ index ], finds, domprops, finaldata = hash ? String(hash) : '\b';
 
 			hash = this.template_hash[ index ];
-			if( !hash ){
+			if( hash === undefined ){
 				hash = this.template_hash[ 'item' ];
 				if( hash ){
 					hash = "item";
@@ -121,20 +121,6 @@ var Binder = Base.extend({
 			}else{
 				this.template_hdom[ index ] = finds.doms;
 			}
-
-			// if( domprops.length > 0 ){
-			// 	for( dp in domprops ) domprops[ dp ].value = finaldata;
-			// 	this.template_hdom[ index ] = this.template_hdom[ index ].concat( domprops );
-			// }
-
-			this.mutationdom( this.template_hdom[ index ], index );
-
-			this.template_hdom[ index ].forEach(function(el){
-				if( el.$$templater === undefined ){
-					el.$$templater = index;
-				}
-			});
-
 		}
 
 		var dom = this.dom, children = this.dom.children, i = 0, qt = children.length;
