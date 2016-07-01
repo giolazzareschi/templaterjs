@@ -847,6 +847,7 @@ d.push(e),this.push(this.source.functionCall("container.invokePartial","",d))},a
 	document.addEventListener("DOMContentLoaded", start_app, false);
 
 window.$list;
+window.$list_search;
 window.template_data;
 function start_app(){
 	// var x = performance.now();
@@ -898,11 +899,31 @@ function start_app(){
 		cssClass : 'city-list',
 		count : 0,
 		selected_items : [],
-		items : city_list
+		items : city_list,
+		searchbar : {
+			term : '',
+			hide : 'hide',
+			cssClass : 'search-list',
+			items : [],
+			allcss : {
+				hide : '',
+				selected : ''
+			}
+		}
 	};
 
-	window.$list = new CityList({
-		template_data : tpl_data
+	tpl_data.searchbar.items = [
+		{name : "Giordano", allcss : tpl_data.searchbar.allcss, css : {class : "item-list", hide : "", selected : ""} },
+		{name : "Bruno", allcss : tpl_data.searchbar.allcss, css : {class : "item-list", hide : "", selected : ""}  },
+		{name : "Lazzareschi", allcss : tpl_data.searchbar.allcss, css : {class : "item-list", hide : "", selected : ""} }
+	]
+
+	// window.$list = new CityList({
+	// 	template_data : tpl_data
+	// });
+
+	$list_search = new SearchBar({
+		template_data : tpl_data.searchbar
 	});
 
 };
@@ -1860,6 +1881,30 @@ create_items = function(parent){
 
 	`
 
+});;var ListSearch = TemplaterList.extend({
+
+	type : 'ListSearch',
+
+	autopaint : true,
+
+	binds : function(){
+
+	},
+
+	template : '<ul id="list" class="search-list {{cssClass}}"></ul>'
+
+});;var ListSearchItem = Templater.extend({
+
+	type : 'ListSearchItem',
+
+	autopaint : true,
+
+	binds : function(){
+
+	},
+
+	template : `<li hideall="{{allcss.hide}}" hide="{{css.hide}}" selectedall="{{allcss.selected}}" selected="{{css.selected}}" class="{{css.class}}">{{name}}</li>`
+
 });;var Places = Templater.extend({
 
 	type : 'Places',
@@ -1886,6 +1931,33 @@ create_items = function(parent){
 				{{places.pageid}}
 			</div>
 		</div>
+	`
+
+});;var SearchBar = Templater.extend({
+
+	type : 'SearchBar',
+
+	autopaint : true,
+
+	binds : function(){
+
+		var list_search = new ListSearch({
+			template_data : {
+				items : this.template_data.$$item__.items
+			}
+		});
+
+		list_search.render( this.dom );
+		this.render( document.body );
+
+	},
+
+	template : `
+	<div class="search-bar">
+		<div class="search-input-wrapper">
+			<input placeholder="Search here:" />
+		</div>
+	</div>
 	`
 
 });;var Select = Templater.extend({

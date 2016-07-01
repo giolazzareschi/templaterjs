@@ -2,6 +2,7 @@ if (document.addEventListener)
 	document.addEventListener("DOMContentLoaded", start_app, false);
 
 window.$list;
+window.$list_search;
 window.template_data;
 function start_app(){
 	// var x = performance.now();
@@ -53,11 +54,31 @@ function start_app(){
 		cssClass : 'city-list',
 		count : 0,
 		selected_items : [],
-		items : city_list
+		items : city_list,
+		searchbar : {
+			term : '',
+			hide : 'hide',
+			cssClass : 'search-list',
+			items : [],
+			allcss : {
+				hide : '',
+				selected : ''
+			}
+		}
 	};
 
-	window.$list = new CityList({
-		template_data : tpl_data
+	tpl_data.searchbar.items = [
+		{name : "Giordano", allcss : tpl_data.searchbar.allcss, css : {class : "item-list", hide : "", selected : ""} },
+		{name : "Bruno", allcss : tpl_data.searchbar.allcss, css : {class : "item-list", hide : "", selected : ""}  },
+		{name : "Lazzareschi", allcss : tpl_data.searchbar.allcss, css : {class : "item-list", hide : "", selected : ""} }
+	]
+
+	// window.$list = new CityList({
+	// 	template_data : tpl_data
+	// });
+
+	$list_search = new SearchBar({
+		template_data : tpl_data.searchbar
 	});
 
 };
