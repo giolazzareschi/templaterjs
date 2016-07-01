@@ -894,15 +894,16 @@ function start_app(){
 		{ id : "002", aka : "JLLE", name : "JOINVILLE", css : {selected : ''} }
 	];
 
+	var tpl_data = {
+		cssClass : 'city-list',
+		count : 0,
+		selected_items : [],
+		items : city_list
+	};
+
 	window.$list = new CityList({
-		template_data : {
-			cssClass : 'city-list',
-			limit : 'sda',
-			items : city_list
-		}
+		template_data : tpl_data
 	});
-	
-	$list.render( document.querySelector('#entry_point') );
 
 };
 
@@ -1656,7 +1657,13 @@ create_items = function(parent){
 	autopaint : true,
 
 	binds : function(){		
-		
+		var cities = new SelectedCities({
+			template_data : this.template_data.$$item__.selected_items
+		});
+
+		this.render( document.querySelector('#entry_point') );
+		this.selected_cities = cities;
+		cities.append( document.querySelector('#entry_point') );
 	},
 
 	template : `<ul class="{{cssClass}}"></ul>`
@@ -1673,7 +1680,18 @@ create_items = function(parent){
 
 	events : {
 		'click' : function(e){
-			this.template_data.item.css.selected = this.template_data.item.css.selected ? "" : "selected";
+			var children = this.template_data.$$item__, parent = this.__parent.template_data.$$item__;
+			if( parent.count < 1 ){
+				children.css.selected = "selected";
+				parent.count++;
+				parent.selected_items.push({id: children.id , name : children.name});
+			}else{
+				if( this.template_data.$$item__.css.selected === "selected" ){
+					this.template_data.$$item__.css.selected = "";
+					this.__parent.template_data.$$item__.count--;
+					this.__parent.selected_cities.remove_item({id: children.id , name : children.name});
+				}
+			}
 		}
 	},
 
@@ -1881,5 +1899,38 @@ create_items = function(parent){
 			{{/each}}
 		</select>
 	`
+
+});;var SelectedCities = TemplaterList.extend({
+
+	type : 'SelectedCities',
+
+	autopaint : true,
+
+	binds : function(){		
+		
+	},
+
+	remove_item : function( item ){
+		var items = this.template_data.$$item__;
+		for( var tt in items ){
+			if( items[ tt ].id === item.id ){
+				this.template_data.$$item__.pop( tt * 1 );
+			}
+		}
+	},
+
+	template : `<ul class="selected-cities"></ul>`
+
+});;var SelectedCitiesItem = Templater.extend({
+
+	type : 'SelectedCitiesItem',
+
+	autopaint : true,
+
+	binds : function(){
+
+	},
+
+	template : `<li data-id="{{id}}">{{name}}</li>`
 
 });

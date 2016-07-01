@@ -49,15 +49,16 @@ function start_app(){
 		{ id : "002", aka : "JLLE", name : "JOINVILLE", css : {selected : ''} }
 	];
 
+	var tpl_data = {
+		cssClass : 'city-list',
+		count : 0,
+		selected_items : [],
+		items : city_list
+	};
+
 	window.$list = new CityList({
-		template_data : {
-			cssClass : 'city-list',
-			limit : 'sda',
-			items : city_list
-		}
+		template_data : tpl_data
 	});
-	
-	$list.render( document.querySelector('#entry_point') );
 
 };
 
