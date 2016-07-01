@@ -45,15 +45,15 @@ function start_app(){
 
 
 	var city_list = [
-		{ id : "001", aka : "CTBA", name : "CURITIBA" }
+		{ id : "001", aka : "CTBA", name : "CURITIBA", css : {selected : ''} },
+		{ id : "002", aka : "JLLE", name : "JOINVILLE", css : {selected : ''} }
 	];
 
 	window.$list = new CityList({
 		template_data : {
-			cssClass : '',
-			items : {
-				cities : city_list
-			}
+			cssClass : 'dsadsa',
+			limit : 'sda',
+			items : city_list
 		}
 	});
 	

@@ -890,15 +890,15 @@ function start_app(){
 
 
 	var city_list = [
-		{ id : "001", aka : "CTBA", name : "CURITIBA" }
+		{ id : "001", aka : "CTBA", name : "CURITIBA", css : {selected : ''} },
+		{ id : "002", aka : "JLLE", name : "JOINVILLE", css : {selected : ''} }
 	];
 
 	window.$list = new CityList({
 		template_data : {
-			cssClass : '',
-			items : {
-				cities : city_list
-			}
+			cssClass : 'dsadsa',
+			limit : 'sda',
+			items : city_list
 		}
 	});
 	
@@ -1112,7 +1112,7 @@ function start_app(){
 			var i=0 , qt = tt.length; 
 			for( ; i<qt; i++ ){
 				var d = tt[ i ], hash = this.template_hash[ d.value ];
-				if( d && hash ){
+				if( d && hash !== undefined ){
 					this.template_hdom[ d.value ].push( d );
 					d.value = hash;
 				}
@@ -1302,7 +1302,11 @@ function start_app(){
 						for(dd in dom){
 							var dom_ = dom[ dd ];
 
-							dom_.value !== undefined ? dom_.value = original : dom_.textContent !== undefined ? dom_.textContent = original : '';
+							if( dom_.value !== undefined )
+								dom_.value = original;
+
+							if( dom_.textContent !== undefined )
+								dom_.textContent = original;
 
 							this.react({
 								changed : p,
@@ -1485,21 +1489,22 @@ function start_app(){
 	},
 
 	create_items : function(){		
-		var items = this.template_data.items, model_name = this.type + 'Item', model = window[model_name];
+		var items = this.template_data.items, model_name = this.type + 'Item', model = window[model_name], cc = 0;
 
 		model.prototype.type = model_name;
 		model.prototype.isListItem = true;
-
+		
 		for( var i in items ){
 			var tt = new model({
 				__parent : this,
-				__index  : i*1,
+				__index  : cc*1,
 				template_data : {
 					item : items[ i ]
 				}
 			});
 
-			this.items[String(i)] = tt;
+			this.items[String(cc)] = tt;
+			cc++;
 		}
 
 	},
@@ -1598,6 +1603,11 @@ function start_app(){
 				var dd = dom.querySelectorAll( selector );
 				for(var i=0, qt=dd.length; i<qt; i++)
 					dd[ i ].addEventListener(event, fn.bind(this), !1);
+
+			}else{
+				if( event ){
+					dom.addEventListener(event, fn.bind(this), !1);					
+				}
 			}
 		}catch(e){
 			console.log( selector );
@@ -1665,7 +1675,7 @@ function start_app(){
 		
 	},
 
-	template : `<ul class="city-list {{cssClass}}"></ul>`
+	template : `<ul class="city-list {{cssClass}}"><div>{{limit}}</div></ul>`
 
 });;var CityListItem = Templater.extend({
 
@@ -1677,7 +1687,13 @@ function start_app(){
 
 	},
 
-	template : `{{#each item}}<li>{{name}}</li>{{/each}}`
+	events : {
+		'click' : function(e){
+			this.template_data.item.css.selected = this.template_data.item.css.selected ? "" : "selected";
+		}
+	},
+
+	template : `<li class="{{item.css.selected}}">{{item.name}}</li>`
 
 });;var Likes = Templater.extend({
 

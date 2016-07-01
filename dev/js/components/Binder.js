@@ -159,7 +159,7 @@ var Binder = Base.extend({
 			var i=0 , qt = tt.length; 
 			for( ; i<qt; i++ ){
 				var d = tt[ i ], hash = this.template_hash[ d.value ];
-				if( d && hash ){
+				if( d && hash !== undefined ){
 					this.template_hdom[ d.value ].push( d );
 					d.value = hash;
 				}

@@ -78,7 +78,11 @@ var Templater = Base.extend({
 						for(dd in dom){
 							var dom_ = dom[ dd ];
 
-							dom_.value !== undefined ? dom_.value = original : dom_.textContent !== undefined ? dom_.textContent = original : '';
+							if( dom_.value !== undefined )
+								dom_.value = original;
+
+							if( dom_.textContent !== undefined )
+								dom_.textContent = original;
 
 							this.react({
 								changed : p,
@@ -261,21 +265,22 @@ var Templater = Base.extend({
 	},
 
 	create_items : function(){		
-		var items = this.template_data.items, model_name = this.type + 'Item', model = window[model_name];
+		var items = this.template_data.items, model_name = this.type + 'Item', model = window[model_name], cc = 0;
 
 		model.prototype.type = model_name;
 		model.prototype.isListItem = true;
-
+		
 		for( var i in items ){
 			var tt = new model({
 				__parent : this,
-				__index  : i*1,
+				__index  : cc*1,
 				template_data : {
 					item : items[ i ]
 				}
 			});
 
-			this.items[String(i)] = tt;
+			this.items[String(cc)] = tt;
+			cc++;
 		}
 
 	},
@@ -374,6 +379,11 @@ var Templater = Base.extend({
 				var dd = dom.querySelectorAll( selector );
 				for(var i=0, qt=dd.length; i<qt; i++)
 					dd[ i ].addEventListener(event, fn.bind(this), !1);
+
+			}else{
+				if( event ){
+					dom.addEventListener(event, fn.bind(this), !1);					
+				}
 			}
 		}catch(e){
 			console.log( selector );
