@@ -70,9 +70,9 @@ function start_app(){
 	};
 
 	tpl_data.searchbar.items = [
-		{name : "Giordano", css : {class : "item-list", hide : false, selected : false} },
-		{name : "Bruno", css : {class : "item-list", hide : false, selected : false}  },
-		{name : "Lazzareschi", css : {class : "item-list", hide : false, selected : false} }
+		{name : "Giordano", css : {class : "item-list", hide : false, selected : false, checked : 'checked'} },
+		{name : "Bruno", css : {class : "item-list", hide : false, selected : false, checked : 'checked'}  },
+		{name : "Lazzareschi", css : {class : "item-list", hide : false, selected : false, checked : 'checked'} }
 	]
 
 	// window.$list = new CityList({

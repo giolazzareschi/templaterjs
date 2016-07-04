@@ -145,6 +145,18 @@ var Binder = Base.extend({
 					if( d && hash !== undefined ){
 						this.template_hdom[ d.value ].push( d );
 						d.value = hash;
+					}else{
+						var clean = d.name.replace(/\"/gi,"");
+						if( isNaN(clean.match(/\$\$item__./gi) * 1) ){
+							var storeattr = this.get_data( clean );
+							d.name = storeattr.index;
+							d.value = storeattr.data;
+							var newattr = document.createAttribute(storeattr.index);
+							newattr.value = storeattr.data;
+							d.ownerElement.setAttributeNode(newattr);
+							d.ownerElement.removeAttribute(d);
+							this.template_hdom[ clean ] = newattr;
+						}
 					}
 				}
 			}
@@ -215,11 +227,17 @@ var Binder = Base.extend({
 	},
 
 	get_data : function( index_track ){
-		var indexes = index_track.split(/[\.]|\_/), data, count=1, end = indexes.length, index;
+		var indexes = index_track.split(/[\.]|\_/), data, count=1, end, index;
+
+		indexes = indexes.filter(function(n){ return n !== "" && n !== undefined && n !== null });
+
+		end = indexes.length;
 
 		for(var i in indexes){
-			if( count++ <= end )
-				data = !data ? this.template_data[ indexes[ i ] ] : data[ indexes [ i ] ];			
+			if( count++ <= end ){
+				var inx = indexes[ i ] === "$$item" ? indexes[ i ] + "__": indexes[ i ];
+				data = !data ? this.template_data[ inx ] : data[ inx ];			
+			}
 
 			index = indexes[ i ];
 		}
