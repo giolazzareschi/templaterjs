@@ -31,9 +31,11 @@
 			background: #f1f159
 			color: #333
 			font-size: 14px
+			transition: background-color .5s ease-out
+			will-change: background-color
 			
 			&[success="true"]
-				background: green
+				background: #5ece85
 
 .search-list
 	li
@@ -41,10 +43,12 @@
 			padding: 20px
 			color: #333
 			font-size: 13px
+			transition: opacity .25s ease, background-color .25s ease-out
+			opacity: 1
 			
 			&[hide="true"], &[hideall="true"]
-				display:none
+				opacity: .5
 			
 			&[selected="true"], &[selectedall="true"]
-				background: #438eff
+				background-color: #438eff
 				color: #fff

@@ -30,8 +30,8 @@ var SearchBar = Templater.extend({
 			this.template_data.$$item__.allcss.successMessage = false;
 			this.template_data.$$item__.message = "Escolha " + items + " sabores";
 		}else{
-			this.template_data.$$item__.allcss.successMessage = true;
 			this.template_data.$$item__.message = "Ok! Go to next >";
+			this.template_data.$$item__.allcss.successMessage = true;
 		}
 	},
 
@@ -60,7 +60,7 @@ var SearchBar = Templater.extend({
 		<div class="search-input-wrapper">
 			<input placeholder="{{placeholder}}" />
 		</div>
-		<div id="limitmessage" success="{{allcss.successMessage}}"><span>{{message}}</span></div>
+		<div id="limitmessage"><span success="{{allcss.successMessage}}">{{message}}</span></div>
 		<div id="listhere"></div>
 	</div>
 	`

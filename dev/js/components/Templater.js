@@ -74,9 +74,6 @@ var Templater = Base.extend({
 							dom = dom.binder.template_hdom['item_' + p];
 					}
 
-					console.log( track );
-					console.log( window.templater_dom[ track ] );
-
 					if( dom !== undefined && dom.length > 0 ){
 						for(dd in dom){
 							var dom_ = dom[ dd ];
@@ -94,8 +91,10 @@ var Templater = Base.extend({
 							});
 						}
 					}
+					
+					// this.binder.template_main[track] = binder.cloneObject( this.template_data[track] );
 
-					this.binder.template_main = binder.cloneObject( this.template_data );
+					this.update_original( track, this.binder.template_main, this.template_data );
 
 					break;
 				}
@@ -116,6 +115,30 @@ var Templater = Base.extend({
 		}
 
 		return {};
+	},
+
+	update_original : function(track, original, news){		
+		var olevels = track.split("."), i = 0, qt = olevels.length, level, original_, news_;
+		for( ; i < qt ; i++ ){
+			level = olevels[ i ];
+			if( isNaN(level.match(/[_][0-9]+$/gi)*1) ){								
+				var index = level.split("_");
+				news_ = news_[ index[0] ][index[1]];
+				original_ = original_[ index[0] ][index[1]];
+			}else{
+				if( !original_ && !news_ ){
+					news_ = news[ level ];
+					original_ = original[ level ];
+				}else{
+					if( i < qt-1 ){
+						news_ = news_[ level ];
+						original_ = original_[ level ];
+					}else{
+						original_[ level ] = news_[ level ];
+					}
+				}
+			}
+		}
 	},
 
 	setpushpop : function( where, token, root_label ){

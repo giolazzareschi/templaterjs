@@ -1327,9 +1327,6 @@ create_items = function(parent){
 							dom = dom.binder.template_hdom['item_' + p];
 					}
 
-					console.log( track );
-					console.log( window.templater_dom[ track ] );
-
 					if( dom !== undefined && dom.length > 0 ){
 						for(dd in dom){
 							var dom_ = dom[ dd ];
@@ -1347,8 +1344,10 @@ create_items = function(parent){
 							});
 						}
 					}
+					
+					// this.binder.template_main[track] = binder.cloneObject( this.template_data[track] );
 
-					this.binder.template_main = binder.cloneObject( this.template_data );
+					this.update_original( track, this.binder.template_main, this.template_data );
 
 					break;
 				}
@@ -1369,6 +1368,30 @@ create_items = function(parent){
 		}
 
 		return {};
+	},
+
+	update_original : function(track, original, news){		
+		var olevels = track.split("."), i = 0, qt = olevels.length, level, original_, news_;
+		for( ; i < qt ; i++ ){
+			level = olevels[ i ];
+			if( isNaN(level.match(/[_][0-9]+$/gi)*1) ){								
+				var index = level.split("_");
+				news_ = news_[ index[0] ][index[1]];
+				original_ = original_[ index[0] ][index[1]];
+			}else{
+				if( !original_ && !news_ ){
+					news_ = news[ level ];
+					original_ = original[ level ];
+				}else{
+					if( i < qt-1 ){
+						news_ = news_[ level ];
+						original_ = original_[ level ];
+					}else{
+						original_[ level ] = news_[ level ];
+					}
+				}
+			}
+		}
 	},
 
 	setpushpop : function( where, token, root_label ){
@@ -1956,7 +1979,11 @@ create_items = function(parent){
 		}
 	},
 
-	template : `<li hideall="{{allcss.hide}}" hide="{{css.hide}}" selectedall="{{allcss.selected}}" selected="{{css.selected}}" class="{{css.class}}">{{name}}</li>`
+	template : `
+		<li hideall="{{allcss.hide}}" hide="{{css.hide}}" selectedall="{{allcss.selected}}" selected="{{css.selected}}" class="{{css.class}}">
+			<input type="checkbox" checked="{{css.selected}}" />
+			<label>{{name}}</label>
+		</li>`
 
 });;var Places = Templater.extend({
 
@@ -2018,8 +2045,8 @@ create_items = function(parent){
 			this.template_data.$$item__.allcss.successMessage = false;
 			this.template_data.$$item__.message = "Escolha " + items + " sabores";
 		}else{
-			this.template_data.$$item__.allcss.successMessage = true;
 			this.template_data.$$item__.message = "Ok! Go to next >";
+			this.template_data.$$item__.allcss.successMessage = true;
 		}
 	},
 
@@ -2048,7 +2075,7 @@ create_items = function(parent){
 		<div class="search-input-wrapper">
 			<input placeholder="{{placeholder}}" />
 		</div>
-		<div id="limitmessage" success="{{allcss.successMessage}}"><span>{{message}}</span></div>
+		<div id="limitmessage"><span success="{{allcss.successMessage}}">{{message}}</span></div>
 		<div id="listhere"></div>
 	</div>
 	`
