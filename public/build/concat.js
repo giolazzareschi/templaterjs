@@ -889,7 +889,6 @@ function start_app(){
 
 	// console.log(performance.now() - x);
 
-
 	var city_list = [
 		{ id : "001", aka : "CTBA", name : "CURITIBA", css : {selected : ''} },
 		{ id : "002", aka : "JLLE", name : "JOINVILLE", css : {selected : ''} }
@@ -901,21 +900,24 @@ function start_app(){
 		selected_items : [],
 		items : city_list,
 		searchbar : {
+			message : '',
+			placeholder : 'Search here:',
 			term : '',
 			hide : 'hide',
 			cssClass : 'search-list',
 			items : [],
 			allcss : {
 				hide : '',
-				selected : ''
+				selected : false,
+				successMessage : false
 			}
 		}
 	};
 
 	tpl_data.searchbar.items = [
-		{name : "Giordano", allcss : tpl_data.searchbar.allcss, css : {class : "item-list", hide : "", selected : ""} },
-		{name : "Bruno", allcss : tpl_data.searchbar.allcss, css : {class : "item-list", hide : "", selected : ""}  },
-		{name : "Lazzareschi", allcss : tpl_data.searchbar.allcss, css : {class : "item-list", hide : "", selected : ""} }
+		{name : "Giordano", css : {class : "item-list", hide : false, selected : false} },
+		{name : "Bruno", css : {class : "item-list", hide : false, selected : false}  },
+		{name : "Lazzareschi", css : {class : "item-list", hide : false, selected : false} }
 	]
 
 	// window.$list = new CityList({
@@ -1108,41 +1110,42 @@ create_items = function(parent){
 
 			this.findInputs( this.dom );
 
+			if( window.templater_dom === undefined )
+				window.templater_dom = {}
+
 			hdom = this.template_hdom[ index ];
 			if( hdom ){
 				this.template_hdom[ index ] = this.template_hdom[ index ].concat( finds.doms );
+				window.templater_dom[ index ] = window.templater_dom[ index ].concat( finds.doms );
 			}else{
 				this.template_hdom[ index ] = finds.doms;
+				window.templater_dom[ index ] = finds.doms;
 			}
 		}
 
-		var dom = this.dom, children = this.dom.children, i = 0, qt = children.length;
-		for( ; i < qt ; i++ ){
-			var child = children[ i ];
+		this.trackattr( [this.dom] );
+	},
 
-			var ss = Array.prototype.slice.call(child.attributes);
-			if( ss !== undefined && ss.length > 0 ){
-				var i=0 , qt = ss.length; 
+	trackattr : function( root ){
+		var irrot =0, qtroot = root.length;
+
+		for( ; irrot < qtroot; irrot++ ){
+			var dom = root[ irrot ];
+
+			var tt = Array.prototype.slice.call(dom.attributes);
+			if( tt !== undefined && tt.length > 0 ){
+				var i=0 , qt = tt.length; 
 				for( ; i<qt; i++ ){
-					var d = ss[ i ], hash = this.template_hash[ d.value ];
-					if( d && hash ){
+					var d = tt[ i ], hash = this.template_hash[ d.value ];
+					if( d && hash !== undefined ){
 						this.template_hdom[ d.value ].push( d );
 						d.value = hash;
 					}
-				}	
-			}
-		}
-
-		var tt = Array.prototype.slice.call(dom.attributes);
-		if( tt !== undefined && tt.length > 0 ){
-			var i=0 , qt = tt.length; 
-			for( ; i<qt; i++ ){
-				var d = tt[ i ], hash = this.template_hash[ d.value ];
-				if( d && hash !== undefined ){
-					this.template_hdom[ d.value ].push( d );
-					d.value = hash;
 				}
 			}
+
+			if( dom.children.length > 0 )
+				this.trackattr( dom.children )
 		}
 	},
 
@@ -1323,6 +1326,9 @@ create_items = function(parent){
 						if( dom && dom.__parent !== undefined )
 							dom = dom.binder.template_hdom['item_' + p];
 					}
+
+					console.log( track );
+					console.log( window.templater_dom[ track ] );
 
 					if( dom !== undefined && dom.length > 0 ){
 						for(dd in dom){
@@ -1667,7 +1673,7 @@ create_items = function(parent){
 		delete this;
 	}
 
-});;var TemplaterList = Templater.extend({	
+},{ deeping_ : false });;var TemplaterList = Templater.extend({	
 
 	isList : true
 
@@ -1885,7 +1891,48 @@ create_items = function(parent){
 
 	type : 'ListSearch',
 
+	parent : undefined,
+
 	autopaint : true,
+
+	selected_items : [],
+
+	limit : 1,
+
+	toggle : function( item ){
+		var pos = this.hasitem( item );
+		if( pos === false ){
+			if( this.selected_items.length < this.limit ){
+				this.additem( item );
+			}
+		}else{
+			this.removeitem(item, pos);
+		}
+		this.parent.updateMessage( this.limit - this.selected_items.length );
+	},
+
+	additem : function( item ){
+		item.css.selected = true;
+		this.selected_items.push({name : item.name});
+	},
+
+	hasitem : function( item ){
+		var i=0, qt = this.selected_items.length, items = this.selected_items, has = false;
+		
+		for( ; i < qt; i++ ){
+			if( items[ i ].name == item.name ){
+				has = i;
+				break;
+			}
+		}
+
+		return has;
+	},
+
+	removeitem : function( item ,index ){
+		item.css.selected = false;
+		this.selected_items.splice(index,1);
+	},
 
 	binds : function(){
 
@@ -1901,6 +1948,12 @@ create_items = function(parent){
 
 	binds : function(){
 
+	},
+
+	events : {
+		'click' : function(){
+			this.__parent.toggle( this.template_data.$$item__ );
+		}
 	},
 
 	template : `<li hideall="{{allcss.hide}}" hide="{{css.hide}}" selectedall="{{allcss.selected}}" selected="{{css.selected}}" class="{{css.class}}">{{name}}</li>`
@@ -1947,16 +2000,56 @@ create_items = function(parent){
 			}
 		});
 
-		list_search.render( this.dom );
+		list_search.parent = this;
+
+		list_search.limit = 2;
+
+		this.updateMessage( list_search.limit );
+
+		this.listmodel = list_search;
+
+		list_search.render( this.elements.listhere );
 		this.render( document.body );
 
+	},
+
+	updateMessage : function( items ){
+		if( items ){
+			this.template_data.$$item__.allcss.successMessage = false;
+			this.template_data.$$item__.message = "Escolha " + items + " sabores";
+		}else{
+			this.template_data.$$item__.allcss.successMessage = true;
+			this.template_data.$$item__.message = "Ok! Go to next >";
+		}
+	},
+
+	events : {
+		'keyup .search-input-wrapper input' : function(e){
+			var items = this.template_data.$$item__.items, i=0, qt = items.length, value = e.currentTarget.value;
+			for( ; i < qt ; i++ ){	
+				var item = items[ i ];
+				try{
+					if( value === ""){
+						item.css.hide = false;
+					}else{
+						if( item.name.match( new RegExp(value, 'gi')) && value ){
+							item.css.hide = false;
+						}else{
+							item.css.hide = true;
+						}
+					}
+				}catch(e){}
+			}
+		}
 	},
 
 	template : `
 	<div class="search-bar">
 		<div class="search-input-wrapper">
-			<input placeholder="Search here:" />
+			<input placeholder="{{placeholder}}" />
 		</div>
+		<div id="limitmessage" success="{{allcss.successMessage}}"><span>{{message}}</span></div>
+		<div id="listhere"></div>
 	</div>
 	`
 

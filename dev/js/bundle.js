@@ -44,7 +44,6 @@ function start_app(){
 
 	// console.log(performance.now() - x);
 
-
 	var city_list = [
 		{ id : "001", aka : "CTBA", name : "CURITIBA", css : {selected : ''} },
 		{ id : "002", aka : "JLLE", name : "JOINVILLE", css : {selected : ''} }
@@ -56,21 +55,24 @@ function start_app(){
 		selected_items : [],
 		items : city_list,
 		searchbar : {
+			message : '',
+			placeholder : 'Search here:',
 			term : '',
 			hide : 'hide',
 			cssClass : 'search-list',
 			items : [],
 			allcss : {
 				hide : '',
-				selected : ''
+				selected : false,
+				successMessage : false
 			}
 		}
 	};
 
 	tpl_data.searchbar.items = [
-		{name : "Giordano", allcss : tpl_data.searchbar.allcss, css : {class : "item-list", hide : "", selected : ""} },
-		{name : "Bruno", allcss : tpl_data.searchbar.allcss, css : {class : "item-list", hide : "", selected : ""}  },
-		{name : "Lazzareschi", allcss : tpl_data.searchbar.allcss, css : {class : "item-list", hide : "", selected : ""} }
+		{name : "Giordano", css : {class : "item-list", hide : false, selected : false} },
+		{name : "Bruno", css : {class : "item-list", hide : false, selected : false}  },
+		{name : "Lazzareschi", css : {class : "item-list", hide : false, selected : false} }
 	]
 
 	// window.$list = new CityList({

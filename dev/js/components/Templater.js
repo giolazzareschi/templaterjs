@@ -74,6 +74,9 @@ var Templater = Base.extend({
 							dom = dom.binder.template_hdom['item_' + p];
 					}
 
+					console.log( track );
+					console.log( window.templater_dom[ track ] );
+
 					if( dom !== undefined && dom.length > 0 ){
 						for(dd in dom){
 							var dom_ = dom[ dd ];
@@ -417,4 +420,4 @@ var Templater = Base.extend({
 		delete this;
 	}
 
-});
+},{ deeping_ : false });

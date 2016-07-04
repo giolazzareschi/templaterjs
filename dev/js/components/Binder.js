@@ -115,41 +115,42 @@ var Binder = Base.extend({
 
 			this.findInputs( this.dom );
 
+			if( window.templater_dom === undefined )
+				window.templater_dom = {}
+
 			hdom = this.template_hdom[ index ];
 			if( hdom ){
 				this.template_hdom[ index ] = this.template_hdom[ index ].concat( finds.doms );
+				window.templater_dom[ index ] = window.templater_dom[ index ].concat( finds.doms );
 			}else{
 				this.template_hdom[ index ] = finds.doms;
+				window.templater_dom[ index ] = finds.doms;
 			}
 		}
 
-		var dom = this.dom, children = this.dom.children, i = 0, qt = children.length;
-		for( ; i < qt ; i++ ){
-			var child = children[ i ];
+		this.trackattr( [this.dom] );
+	},
 
-			var ss = Array.prototype.slice.call(child.attributes);
-			if( ss !== undefined && ss.length > 0 ){
-				var i=0 , qt = ss.length; 
+	trackattr : function( root ){
+		var irrot =0, qtroot = root.length;
+
+		for( ; irrot < qtroot; irrot++ ){
+			var dom = root[ irrot ];
+
+			var tt = Array.prototype.slice.call(dom.attributes);
+			if( tt !== undefined && tt.length > 0 ){
+				var i=0 , qt = tt.length; 
 				for( ; i<qt; i++ ){
-					var d = ss[ i ], hash = this.template_hash[ d.value ];
-					if( d && hash ){
+					var d = tt[ i ], hash = this.template_hash[ d.value ];
+					if( d && hash !== undefined ){
 						this.template_hdom[ d.value ].push( d );
 						d.value = hash;
 					}
-				}	
-			}
-		}
-
-		var tt = Array.prototype.slice.call(dom.attributes);
-		if( tt !== undefined && tt.length > 0 ){
-			var i=0 , qt = tt.length; 
-			for( ; i<qt; i++ ){
-				var d = tt[ i ], hash = this.template_hash[ d.value ];
-				if( d && hash !== undefined ){
-					this.template_hdom[ d.value ].push( d );
-					d.value = hash;
 				}
 			}
+
+			if( dom.children.length > 0 )
+				this.trackattr( dom.children )
 		}
 	},
 
