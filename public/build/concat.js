@@ -1076,11 +1076,11 @@ create_items = function(parent){
 	},
 
 	isobject : function( ob ){
-		return ob.constructor.prototype === {}.constructor.prototype ? "." : "";
+		return ob ? ob.constructor.prototype === {}.constructor.prototype ? "." : "" : "";
 	},
 
 	isarray : function( ob ){
-		return ob.constructor.prototype === [].constructor.prototype ? "_" : "";
+		return ob ?  ob.constructor.prototype === [].constructor.prototype ? "_" : "" : "";
 	},
 
 	track : function(){
@@ -1143,14 +1143,16 @@ create_items = function(parent){
 					}else{
 						var clean = d.name.replace(/\"/gi,"");
 						if( isNaN(clean.match(/\$\$item__./gi) * 1) ){
-							var storeattr = this.get_data( clean );
-							d.name = storeattr.index;
-							d.value = storeattr.data;
+							var storeattr = this.get_data( clean );							
 							var newattr = document.createAttribute(storeattr.index);
+							// newattr.value = storeattr.data;
+							newattr.$$templatersolo = true;
+							newattr.$$templatersoloowner = d.ownerElement;
 							newattr.value = storeattr.data;
-							d.ownerElement.setAttributeNode(newattr);
-							d.ownerElement.removeAttribute(d);
-							this.template_hdom[ clean ] = newattr;
+							if( newattr.value ) 
+								d.ownerElement.setAttributeNode(newattr);
+							d.ownerElement.removeAttribute(d.name);
+							this.template_hdom[ clean ].push(newattr);
 						}
 					}
 				}
@@ -1349,11 +1351,21 @@ create_items = function(parent){
 						for(dd in dom){
 							var dom_ = dom[ dd ];
 
-							if( dom_.value !== undefined )
-								dom_.value = original;
+							if( dom_.$$templatersolo ){
+								var ownerref = dom_.$$templatersoloowner;
+								if( original ){
+									ownerref.setAttributeNode( dom_ );
+								}else{
+									ownerref.removeAttribute( dom_.name );
+								}
+								dom_.value = original
+							}else{
+								if( dom_.value !== undefined )
+									dom_.value = original;
 
-							if( dom_.textContent !== undefined )
-								dom_.textContent = original;
+								if( dom_.textContent !== undefined )
+									dom_.textContent = original;
+							}
 
 							this.react({
 								changed : p,

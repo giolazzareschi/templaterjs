@@ -81,11 +81,11 @@ var Binder = Base.extend({
 	},
 
 	isobject : function( ob ){
-		return ob.constructor.prototype === {}.constructor.prototype ? "." : "";
+		return ob ? ob.constructor.prototype === {}.constructor.prototype ? "." : "" : "";
 	},
 
 	isarray : function( ob ){
-		return ob.constructor.prototype === [].constructor.prototype ? "_" : "";
+		return ob ?  ob.constructor.prototype === [].constructor.prototype ? "_" : "" : "";
 	},
 
 	track : function(){
@@ -148,14 +148,16 @@ var Binder = Base.extend({
 					}else{
 						var clean = d.name.replace(/\"/gi,"");
 						if( isNaN(clean.match(/\$\$item__./gi) * 1) ){
-							var storeattr = this.get_data( clean );
-							d.name = storeattr.index;
-							d.value = storeattr.data;
+							var storeattr = this.get_data( clean );							
 							var newattr = document.createAttribute(storeattr.index);
+							// newattr.value = storeattr.data;
+							newattr.$$templatersolo = true;
+							newattr.$$templatersoloowner = d.ownerElement;
 							newattr.value = storeattr.data;
-							d.ownerElement.setAttributeNode(newattr);
-							d.ownerElement.removeAttribute(d);
-							this.template_hdom[ clean ] = newattr;
+							if( newattr.value ) 
+								d.ownerElement.setAttributeNode(newattr);
+							d.ownerElement.removeAttribute(d.name);
+							this.template_hdom[ clean ].push(newattr);
 						}
 					}
 				}

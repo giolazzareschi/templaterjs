@@ -78,11 +78,21 @@ var Templater = Base.extend({
 						for(dd in dom){
 							var dom_ = dom[ dd ];
 
-							if( dom_.value !== undefined )
-								dom_.value = original;
+							if( dom_.$$templatersolo ){
+								var ownerref = dom_.$$templatersoloowner;
+								if( original ){
+									ownerref.setAttributeNode( dom_ );
+								}else{
+									ownerref.removeAttribute( dom_.name );
+								}
+								dom_.value = original
+							}else{
+								if( dom_.value !== undefined )
+									dom_.value = original;
 
-							if( dom_.textContent !== undefined )
-								dom_.textContent = original;
+								if( dom_.textContent !== undefined )
+									dom_.textContent = original;
+							}
 
 							this.react({
 								changed : p,
