@@ -848,6 +848,7 @@ d.push(e),this.push(this.source.functionCall("container.invokePartial","",d))},a
 
 window.$list;
 window.$list_search;
+window.$app;
 window.template_data;
 function start_app(){
 	// var x = performance.now();
@@ -915,17 +916,17 @@ function start_app(){
 	};
 
 	tpl_data.searchbar.items = [
-		{name : "Giordano", css : {class : "item-list", hide : false, selected : false, checked : 'checked'} },
-		{name : "Bruno", css : {class : "item-list", hide : false, selected : false, checked : 'checked'}  },
-		{name : "Lazzareschi", css : {class : "item-list", hide : false, selected : false, checked : 'checked'} }
+		{name : "Broto", css : {class : "item-list", hide : false, selected : false} },
+		{name : "Média", css : {class : "item-list", hide : false, selected : false}  },
+		{name : "Grande", css : {class : "item-list", hide : false, selected : false} }
 	]
 
 	// window.$list = new CityList({
 	// 	template_data : tpl_data
 	// });
 
-	$list_search = new SearchBar({
-		template_data : tpl_data.searchbar
+	$app = new ScreenManager({
+		template_data : tpl_data
 	});
 
 };
@@ -1953,20 +1954,31 @@ create_items = function(parent){
 	limit : 1,
 
 	toggle : function( item ){
-		var pos = this.hasitem( item );
+		var pos = this.hasitem( item ), sels = this.selected_items.length;
 		if( pos === false ){
-			if( this.selected_items.length < this.limit ){
-				this.additem( item );
-			}
+			if( sels > 0  )
+				this.unselectall();
+
+			this.additem( item );
 		}else{
 			this.removeitem(item, pos);
 		}
 		this.parent.updateMessage( this.limit - this.selected_items.length );
 	},
 
+	unselectall : function(){
+		var items = this.selected_items, i = 0 , qt = items.length;
+
+		for( ; i < qt ; i++ ){
+			items[ i ].css.selected = false;
+			this.selected_items.splice(i,1);
+		}
+
+	},
+
 	additem : function( item ){
 		item.css.selected = true;
-		this.selected_items.push({name : item.name});
+		this.selected_items.push(item);
 	},
 
 	hasitem : function( item ){
@@ -2010,8 +2022,7 @@ create_items = function(parent){
 	},
 
 	template : `
-		<li hideall="{{allcss.hide}}" hide="{{css.hide}}" selectedall="{{allcss.selected}}" selected="{{css.selected}}" class="{{css.class}}">
-			<input type="checkbox" "{{css.checked}}" />
+		<li hideall="{{allcss.hide}}" hide="{{css.hide}}" selectedall="{{allcss.selected}}" selected="{{css.selected}}" class="{{css.class}}">			
 			<label>{{name}}</label>
 		</li>`
 
@@ -2043,6 +2054,38 @@ create_items = function(parent){
 		</div>
 	`
 
+});;var ScreenManager = Templater.extend({
+
+	type : 'ScreenManager',
+
+	autopaint : true,
+
+	binds : function(){
+		this.addscreen( 
+			new SearchBar({
+				template_data : this.template_data.$$item__.searchbar
+			}) 
+		);
+
+		this.render( document.body );
+	},
+
+	screens : {},
+
+	addscreen : function( screen ){
+		this.screens[ screen.type ] = screen;
+
+		screen.render( this.elements.appmaincontent );
+	},
+
+	template : `
+	<div appmaincenter>
+		<div appmainheader></div>
+		<div id="appmaincontent" appmaincontent></div>
+		<div appmainfooter></div>
+	</div>
+	`
+
 });;var SearchBar = Templater.extend({
 
 	type : 'SearchBar',
@@ -2059,23 +2102,20 @@ create_items = function(parent){
 
 		list_search.parent = this;
 
-		list_search.limit = 2;
-
 		this.updateMessage( list_search.limit );
 
 		this.listmodel = list_search;
 
 		list_search.render( this.elements.listhere );
-		this.render( document.body );
 
 	},
 
 	updateMessage : function( items ){
 		if( items ){
 			this.template_data.$$item__.allcss.successMessage = false;
-			this.template_data.$$item__.message = "Escolha " + items + " sabores";
+			this.template_data.$$item__.message = "Escolha " + items + " tamanho";
 		}else{
-			this.template_data.$$item__.message = "Ok! Go to next >";
+			this.template_data.$$item__.message = "Sabores >>";
 			this.template_data.$$item__.allcss.successMessage = true;
 		}
 	},

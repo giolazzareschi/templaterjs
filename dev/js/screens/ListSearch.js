@@ -11,20 +11,31 @@ var ListSearch = TemplaterList.extend({
 	limit : 1,
 
 	toggle : function( item ){
-		var pos = this.hasitem( item );
+		var pos = this.hasitem( item ), sels = this.selected_items.length;
 		if( pos === false ){
-			if( this.selected_items.length < this.limit ){
-				this.additem( item );
-			}
+			if( sels > 0  )
+				this.unselectall();
+
+			this.additem( item );
 		}else{
 			this.removeitem(item, pos);
 		}
 		this.parent.updateMessage( this.limit - this.selected_items.length );
 	},
 
+	unselectall : function(){
+		var items = this.selected_items, i = 0 , qt = items.length;
+
+		for( ; i < qt ; i++ ){
+			items[ i ].css.selected = false;
+			this.selected_items.splice(i,1);
+		}
+
+	},
+
 	additem : function( item ){
 		item.css.selected = true;
-		this.selected_items.push({name : item.name});
+		this.selected_items.push(item);
 	},
 
 	hasitem : function( item ){

@@ -98,3 +98,20 @@ a
 	
 	&.success
 		color: #45d
+
+div[appmaincenter]
+	display: flex
+	displayflexdirection: column
+	height: 100%
+
+	div[appmainheader], div[appmainfooter]
+		flex: 0 0 80px
+		z-index: 1
+
+	div[appmaincontent]
+		flex: 1 0 auto
+		z-index: 1
+
+	div[appmainheader]
+		z-index: 2
+		box-shadow: 0px 0px 3px -1px #000

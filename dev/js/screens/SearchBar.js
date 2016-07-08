@@ -14,23 +14,20 @@ var SearchBar = Templater.extend({
 
 		list_search.parent = this;
 
-		list_search.limit = 2;
-
 		this.updateMessage( list_search.limit );
 
 		this.listmodel = list_search;
 
 		list_search.render( this.elements.listhere );
-		this.render( document.body );
 
 	},
 
 	updateMessage : function( items ){
 		if( items ){
 			this.template_data.$$item__.allcss.successMessage = false;
-			this.template_data.$$item__.message = "Escolha " + items + " sabores";
+			this.template_data.$$item__.message = "Escolha " + items + " tamanho";
 		}else{
-			this.template_data.$$item__.message = "Ok! Go to next >";
+			this.template_data.$$item__.message = "Sabores >>";
 			this.template_data.$$item__.allcss.successMessage = true;
 		}
 	},

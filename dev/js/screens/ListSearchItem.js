@@ -15,8 +15,7 @@ var ListSearchItem = Templater.extend({
 	},
 
 	template : `
-		<li hideall="{{allcss.hide}}" hide="{{css.hide}}" selectedall="{{allcss.selected}}" selected="{{css.selected}}" class="{{css.class}}">
-			<input type="checkbox" "{{css.checked}}" />
+		<li hideall="{{allcss.hide}}" hide="{{css.hide}}" selectedall="{{allcss.selected}}" selected="{{css.selected}}" class="{{css.class}}">			
 			<label>{{name}}</label>
 		</li>`
 

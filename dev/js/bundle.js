@@ -3,6 +3,7 @@ if (document.addEventListener)
 
 window.$list;
 window.$list_search;
+window.$app;
 window.template_data;
 function start_app(){
 	// var x = performance.now();
@@ -70,17 +71,17 @@ function start_app(){
 	};
 
 	tpl_data.searchbar.items = [
-		{name : "Giordano", css : {class : "item-list", hide : false, selected : false, checked : 'checked'} },
-		{name : "Bruno", css : {class : "item-list", hide : false, selected : false, checked : 'checked'}  },
-		{name : "Lazzareschi", css : {class : "item-list", hide : false, selected : false, checked : 'checked'} }
+		{name : "Broto", css : {class : "item-list", hide : false, selected : false} },
+		{name : "Média", css : {class : "item-list", hide : false, selected : false}  },
+		{name : "Grande", css : {class : "item-list", hide : false, selected : false} }
 	]
 
 	// window.$list = new CityList({
 	// 	template_data : tpl_data
 	// });
 
-	$list_search = new SearchBar({
-		template_data : tpl_data.searchbar
+	$app = new ScreenManager({
+		template_data : tpl_data
 	});
 
 };
