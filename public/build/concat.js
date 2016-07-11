@@ -902,6 +902,7 @@ function start_app(){
 		items : city_list,
 		searchbar : {
 			message : '',
+			searched: '',
 			placeholder : 'Search here:',
 			term : '',
 			hide : 'hide',
@@ -912,6 +913,10 @@ function start_app(){
 				selected : false,
 				successMessage : false
 			}
+		},
+		loginscreen : {
+			username : '',
+			password : ''
 		}
 	};
 
@@ -1107,20 +1112,13 @@ create_items = function(parent){
 				replace : finaldata
 			});
 
-			// domprops = [].slice.call( this.dom.querySelectorAll('[value="'+ index +'"]') );
-
 			this.findInputs( this.dom );
-
-			if( window.templater_dom === undefined )
-				window.templater_dom = {}
 
 			hdom = this.template_hdom[ index ];
 			if( hdom ){
 				this.template_hdom[ index ] = this.template_hdom[ index ].concat( finds.doms );
-				window.templater_dom[ index ] = window.templater_dom[ index ].concat( finds.doms );
 			}else{
 				this.template_hdom[ index ] = finds.doms;
-				window.templater_dom[ index ] = finds.doms;
 			}
 		}
 
@@ -1171,12 +1169,12 @@ create_items = function(parent){
 			data, hdom;
 
 			data = this.template_hash[ label ];
-			if( !data ){
+			if( data === undefined ){
 				data = this.template_hash[ 'item' ];
 				if( data ) hash = "item";
 			}
 
-			if( data ){
+			if( data !== undefined ){
 				if( this.templater.__index !== undefined )
 					hash = hash + '_' + this.templater.__index;
 
@@ -1219,28 +1217,30 @@ create_items = function(parent){
 		var el = this.get_data( index_track ), parent = this.templater.__parent;
 
 		if( parent )
-			parent.template_data.items[this.templater.__index] = value;
+			parent.template_data.$$item__.items[this.templater.__index][ el.index ] = value;
 		else
-			this.template_data[ el.index ] = value;
+			this.template_data.$$item__[ el.index ] = value;
 	},
 
 	get_data : function( index_track ){
-		var indexes = index_track.split(/[\.]|\_/), data, count=1, end, index;
+		var indexes = index_track.split(/[\.]|\_/), data, count=1, end, index, parent = this.templater.__parent;
 
 		indexes = indexes.filter(function(n){ return n !== "" && n !== undefined && n !== null });
 
 		end = indexes.length;
 
+		if( parent )
+			end = end - 1;
+
 		for(var i in indexes){
 			if( count++ <= end ){
 				var inx = indexes[ i ] === "$$item" ? indexes[ i ] + "__": indexes[ i ];
 				data = !data ? this.template_data[ inx ] : data[ inx ];			
+				index = indexes[ i ];
 			}
-
-			index = indexes[ i ];
 		}
 
-		return {data :data, index : index};
+		return {data :data, index : index, track : index_track};
 	},
 
 	mutationinput : function( doms, hash ){
@@ -1249,7 +1249,7 @@ create_items = function(parent){
 		for( ; i < qt ; i++ ){
 			var dom = doms[ i ];
 
-			dom.addEventListener('change', function( e ){				
+			dom.addEventListener('change', function( e ){
 				var el = e.srcElement || e.target
 
 				me.set_data( el.$$templater, el.value );
@@ -2026,6 +2026,77 @@ create_items = function(parent){
 			<label>{{name}}</label>
 		</li>`
 
+});;var LoginScreen = Templater.extend({
+
+	type : 'LoginScreen',
+
+	autopaint : true,
+
+	binds : function(){
+		this.appmainheader = new LoginScreenHeader({
+			parent : this
+		});
+
+		this.appmainfooter = new LoginScreenFooter({
+			parent : this
+		});
+	},
+
+	template : `
+	<div class="login-screen">
+		<div class="row-login">
+			<input value="{{username}}" placeholder="Username" />
+		</div>
+		<div class="row-login">
+			<input type="password" value="{{password}}" placeholder="Password" />
+		</div>
+	</div>
+	`
+
+});;var LoginScreenFooter = Templater.extend({
+
+	type : 'LoginScreenFooter',
+
+	autopaint : true,
+
+	binds : function(){
+
+	},
+
+	events : {
+		'click button' : function(){
+			console.log( this.parent.template_data.$$item__ );
+		}
+	},
+
+	template : `
+	<div class="login-screen-footer">
+		<button>Login</button>
+	</div>
+	`
+
+});;var LoginScreenHeader = Templater.extend({
+
+	type : 'LoginScreenHeader',
+
+	autopaint : true,
+
+	binds : function(){
+
+	},
+
+	events : {
+		'click button' : function(){
+			console.log( this.parent.template_data.$$item__ );
+		}
+	},
+
+	template : `
+	<div class="login-screen-header">
+		<h1>My app</h1>
+	</div>
+	`
+
 });;var Places = Templater.extend({
 
 	type : 'Places',
@@ -2062,8 +2133,8 @@ create_items = function(parent){
 
 	binds : function(){
 		this.addscreen( 
-			new SearchBar({
-				template_data : this.template_data.$$item__.searchbar
+			new LoginScreen({
+				template_data : this.template_data.$$item__.loginscreen
 			}) 
 		);
 
@@ -2075,14 +2146,32 @@ create_items = function(parent){
 	addscreen : function( screen ){
 		this.screens[ screen.type ] = screen;
 
+		if( screen.appmainheader )
+			screen.appmainheader.render( this.elements.appmainheader );
+		else
+			this.hideheder();
+
+		if( screen.appmainfooter )
+			screen.appmainfooter.render( this.elements.appmainfooter );
+		else
+			this.hidefooter();
+
 		screen.render( this.elements.appmaincontent );
+	},
+
+	hideheder : function(){
+		this.elements.appmainheader.classList.add('hide');
+	},
+
+	hidefooter : function(){
+		this.elements.appmainfooter.classList.add('hide');
 	},
 
 	template : `
 	<div appmaincenter>
-		<div appmainheader></div>
+		<div id="appmainheader"  appmainheader></div>
 		<div id="appmaincontent" appmaincontent></div>
-		<div appmainfooter></div>
+		<div id="appmainfooter"  appmainfooter></div>
 	</div>
 	`
 
@@ -2143,7 +2232,7 @@ create_items = function(parent){
 	template : `
 	<div class="search-bar">
 		<div class="search-input-wrapper">
-			<input placeholder="{{placeholder}}" />
+			<input placeholder="{{placeholder}}" value="{{searched}}" />
 		</div>
 		<div id="limitmessage"><span success="{{allcss.successMessage}}">{{message}}</span></div>
 		<div id="listhere"></div>

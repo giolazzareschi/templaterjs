@@ -57,6 +57,7 @@ function start_app(){
 		items : city_list,
 		searchbar : {
 			message : '',
+			searched: '',
 			placeholder : 'Search here:',
 			term : '',
 			hide : 'hide',
@@ -67,6 +68,10 @@ function start_app(){
 				selected : false,
 				successMessage : false
 			}
+		},
+		loginscreen : {
+			username : '',
+			password : ''
 		}
 	};
 
