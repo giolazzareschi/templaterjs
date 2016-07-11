@@ -16,11 +16,15 @@ var LoginScreen = Templater.extend({
 
 	template : `
 	<div class="login-screen">
-		<div class="row-login">
-			<input value="{{username}}" placeholder="Username" />
-		</div>
-		<div class="row-login">
-			<input type="password" value="{{password}}" placeholder="Password" />
+		<div class="login-screen-mask">
+			<div class="vcenter">
+			<div class="row-login">
+				<input value="{{username}}" placeholder="Username" />
+			</div>
+			<div class="row-login">
+				<input type="password" value="{{password}}" placeholder="Password" />
+			</div>
+			</div>
 		</div>
 	</div>
 	`
