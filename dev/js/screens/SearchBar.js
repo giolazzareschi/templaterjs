@@ -55,7 +55,7 @@ var SearchBar = Templater.extend({
 	template : `
 	<div class="search-bar">
 		<div class="search-input-wrapper">
-			<input placeholder="{{placeholder}}" />
+			<input placeholder="{{placeholder}}" value="{{searched}}" />
 		</div>
 		<div id="limitmessage"><span success="{{allcss.successMessage}}">{{message}}</span></div>
 		<div id="listhere"></div>

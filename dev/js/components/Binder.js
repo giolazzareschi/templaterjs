@@ -111,20 +111,13 @@ var Binder = Base.extend({
 				replace : finaldata
 			});
 
-			// domprops = [].slice.call( this.dom.querySelectorAll('[value="'+ index +'"]') );
-
 			this.findInputs( this.dom );
-
-			if( window.templater_dom === undefined )
-				window.templater_dom = {}
 
 			hdom = this.template_hdom[ index ];
 			if( hdom ){
 				this.template_hdom[ index ] = this.template_hdom[ index ].concat( finds.doms );
-				window.templater_dom[ index ] = window.templater_dom[ index ].concat( finds.doms );
 			}else{
 				this.template_hdom[ index ] = finds.doms;
-				window.templater_dom[ index ] = finds.doms;
 			}
 		}
 
@@ -175,12 +168,12 @@ var Binder = Base.extend({
 			data, hdom;
 
 			data = this.template_hash[ label ];
-			if( !data ){
+			if( data === undefined ){
 				data = this.template_hash[ 'item' ];
 				if( data ) hash = "item";
 			}
 
-			if( data ){
+			if( data !== undefined ){
 				if( this.templater.__index !== undefined )
 					hash = hash + '_' + this.templater.__index;
 
@@ -225,26 +218,28 @@ var Binder = Base.extend({
 		if( parent )
 			parent.template_data.$$item__.items[this.templater.__index] = value;
 		else
-			this.template_data[ el.index ] = value;
+			this.template_data.$$item__[ el.index ] = value;
 	},
 
 	get_data : function( index_track ){
-		var indexes = index_track.split(/[\.]|\_/), data, count=1, end, index;
+		var indexes = index_track.split(/[\.]|\_/), data, count=1, end, index, parent = this.templater.__parent;
 
 		indexes = indexes.filter(function(n){ return n !== "" && n !== undefined && n !== null });
 
 		end = indexes.length;
 
+		if( parent )
+			end = end - 1;
+
 		for(var i in indexes){
 			if( count++ <= end ){
 				var inx = indexes[ i ] === "$$item" ? indexes[ i ] + "__": indexes[ i ];
 				data = !data ? this.template_data[ inx ] : data[ inx ];			
+				index = indexes[ i ];
 			}
-
-			index = indexes[ i ];
 		}
 
-		return {data :data, index : index};
+		return {data :data, index : index, track : index_track};
 	},
 
 	mutationinput : function( doms, hash ){
@@ -253,7 +248,7 @@ var Binder = Base.extend({
 		for( ; i < qt ; i++ ){
 			var dom = doms[ i ];
 
-			dom.addEventListener('change', function( e ){				
+			dom.addEventListener('change', function( e ){
 				var el = e.srcElement || e.target
 
 				me.set_data( el.$$templater, el.value );
