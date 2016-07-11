@@ -6,7 +6,7 @@ var ScreenManager = Templater.extend({
 
 	binds : function(){
 		this.addscreen( 
-			new SearchBar({
+			new TaskScreen({
 				template_data : this.template_data.$$item__.searchbar
 			}) 
 		);
