@@ -87,6 +87,9 @@ var Templater = Base.extend({
 								}
 								dom_.value = original
 							}else{
+								if( dom_.ownerElement !== undefined )
+									dom_  = dom_.ownerElement;
+								
 								if( dom_.value !== undefined )
 									dom_.value = original;
 

@@ -216,7 +216,7 @@ var Binder = Base.extend({
 		var el = this.get_data( index_track ), parent = this.templater.__parent;
 
 		if( parent )
-			parent.template_data.$$item__.items[this.templater.__index][ el.index ] = value;
+			parent.template_data.$$item__.items[this.templater.__index] = value;
 		else
 			this.template_data.$$item__[ el.index ] = value;
 	},

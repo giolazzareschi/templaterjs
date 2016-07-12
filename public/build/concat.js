@@ -1217,7 +1217,7 @@ create_items = function(parent){
 		var el = this.get_data( index_track ), parent = this.templater.__parent;
 
 		if( parent )
-			parent.template_data.$$item__.items[this.templater.__index][ el.index ] = value;
+			parent.template_data.$$item__.items[this.templater.__index] = value;
 		else
 			this.template_data.$$item__[ el.index ] = value;
 	},
@@ -1361,6 +1361,9 @@ create_items = function(parent){
 								}
 								dom_.value = original
 							}else{
+								if( dom_.ownerElement !== undefined )
+									dom_  = dom_.ownerElement;
+								
 								if( dom_.value !== undefined )
 									dom_.value = original;
 
@@ -2118,6 +2121,7 @@ create_items = function(parent){
 
 		this.base();
 	},
+	
 	content : `
 	<div class="login-screen">
 		<div class="login-screen-mask">
@@ -2214,7 +2218,7 @@ create_items = function(parent){
 	leftmenu : undefined,
 
 	binds : function(){
-		this.addscreen( 
+		this.addscreen(
 			new LoginScreen({
 				template_data : this.template_data.$$item__.loginscreen
 			}) 
@@ -2349,5 +2353,69 @@ create_items = function(parent){
 	},
 
 	template : `<li data-id="{{id}}">{{name}}</li>`
+
+});;var TaskList = TemplaterList.extend({
+
+	type : 'TaskList',
+
+	autopaint : true,
+
+	binds : function(){
+		this.tasks = this.template_data.$$item__.items;
+	},
+
+	addtask : function( json ){
+		this.template_data.$$item__.items.push( json );
+	},
+
+	tasks : [],
+
+	template : '<ul id="tasklist"></ul>'
+
+});;var TaskListItem = Templater.extend({
+
+	type : 'TaskListItem',
+
+	autopaint : true,
+
+	binds : function(){
+		
+	},
+
+	template : `
+		<li>
+			<input placeholder="Name task here:" value="{{name}}" />
+		</li>
+	`
+
+});;var TaskScreen = Templater.extend({
+
+	type : 'TaskScreen',
+
+	autopaint : true,
+
+	binds : function(){
+
+		this.tasklist = new TaskList({
+			template_data : {
+				items : []
+			}
+		});
+
+		this.tasklist.render( this.elements.tasksarea );
+
+		this.addtask({ name : 'Task 1' });
+	},
+
+	addtask : function( json ){
+		this.tasklist.addtask( json );
+	},
+
+	template : `
+		<div id="taskscreen">
+			<h1 id="stepmessage">Start creating a task</h1>
+			<div id="tasksarea"></div>
+		</div>
+	`
 
 });

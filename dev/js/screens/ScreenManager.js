@@ -7,7 +7,7 @@ var ScreenManager = Templater.extend({
 	leftmenu : undefined,
 
 	binds : function(){
-		this.addscreen( 
+		this.addscreen(
 			new LoginScreen({
 				template_data : this.template_data.$$item__.loginscreen
 			}) 
