@@ -1731,6 +1731,54 @@ create_items = function(parent){
 
 	isList : true
 
+});;var Screen = Templater.extend({
+
+	type : 'Screen',
+
+	autopaint : true,
+
+	appmainheader : undefined,
+
+	appmainfooter : undefined,
+
+	binds : function(){
+		this.set_regions();
+
+		this.base();
+	},
+
+	set_regions : function(){
+		if( this.appmainheader )
+			this.appmainheader.render( this.elements.appmainheader );
+		else
+			this.hideheader();
+
+		if( this.appmainfooter )
+			this.appmainfooter.render( this.elements.appmainfooter );
+		else
+			this.hidefooter();
+	},
+
+	hideheader : function(){
+		this.elements.appmainheader.classList.add('hide');
+	},
+
+	hidefooter : function(){
+		this.elements.appmainfooter.classList.add('hide');
+	},
+
+	addClass : function( str ){
+		this.dom.classList.add( str );
+	},
+
+	template : `
+		<div class="app-screen">
+			<header id="appmainheader"></header>
+			<article id="appmaincontent"></article>
+			<footer id="appmainfooter"></footer>
+		</div>
+	`
+
 });;var CityList = TemplaterList.extend({
 
 	type : 'CityList',
@@ -1777,6 +1825,33 @@ create_items = function(parent){
 	},
 
 	template : `<li class="{{css.selected}}">{{name}}</li>`
+
+});;var LeftMenu = Screen.extend({
+
+	type : 'LeftMenu',
+
+	autopaint : true,
+
+	binds : function(){
+		this.addClass("app-left-menu");
+
+		this.base();
+	},
+
+	content : `
+	<div class="login-screen">
+		<div class="login-screen-mask">
+			<div class="vcenter">
+			<div class="row-login">
+				<input value="{{username}}" placeholder="Username" />
+			</div>
+			<div class="row-login">
+				<input type="password" value="{{password}}" placeholder="Password" />
+			</div>
+			</div>
+		</div>
+	</div>
+	`
 
 });;var Likes = Templater.extend({
 
@@ -2026,7 +2101,7 @@ create_items = function(parent){
 			<label>{{name}}</label>
 		</li>`
 
-});;var LoginScreen = Templater.extend({
+});;var LoginScreen = Screen.extend({
 
 	type : 'LoginScreen',
 
@@ -2040,9 +2115,10 @@ create_items = function(parent){
 		this.appmainfooter = new LoginScreenFooter({
 			parent : this
 		});
-	},
 
-	template : `
+		this.base();
+	},
+	content : `
 	<div class="login-screen">
 		<div class="login-screen-mask">
 			<div class="vcenter">
@@ -2090,8 +2166,8 @@ create_items = function(parent){
 	},
 
 	events : {
-		'click button' : function(){
-			console.log( this.parent.template_data.$$item__ );
+		'click' : function(){
+			console.log( this.parent.show() );
 		}
 	},
 
@@ -2135,9 +2211,17 @@ create_items = function(parent){
 
 	autopaint : true,
 
+	leftmenu : undefined,
+
 	binds : function(){
 		this.addscreen( 
 			new LoginScreen({
+				template_data : this.template_data.$$item__.loginscreen
+			}) 
+		);
+
+		this.addscreen( 
+			new LeftMenu({
 				template_data : this.template_data.$$item__.loginscreen
 			}) 
 		);
@@ -2150,33 +2234,11 @@ create_items = function(parent){
 	addscreen : function( screen ){
 		this.screens[ screen.type ] = screen;
 
-		if( screen.appmainheader )
-			screen.appmainheader.render( this.elements.appmainheader );
-		else
-			this.hideheder();
-
-		if( screen.appmainfooter )
-			screen.appmainfooter.render( this.elements.appmainfooter );
-		else
-			this.hidefooter();
-
-		screen.render( this.elements.appmaincontent );
-	},
-
-	hideheder : function(){
-		this.elements.appmainheader.classList.add('hide');
-	},
-
-	hidefooter : function(){
-		this.elements.appmainfooter.classList.add('hide');
+		screen.append( this.dom );
 	},
 
 	template : `
-	<div appmaincenter>
-		<div id="appmainheader"  appmainheader></div>
-		<div id="appmaincontent" appmaincontent></div>
-		<div id="appmainfooter"  appmainfooter></div>
-	</div>
+	<div id="appmainstage" appmaincenter></div>
 	`
 
 });;var SearchBar = Templater.extend({

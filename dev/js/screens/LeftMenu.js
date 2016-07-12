@@ -1,21 +1,15 @@
-var LoginScreen = Screen.extend({
+var LeftMenu = Screen.extend({
 
-	type : 'LoginScreen',
+	type : 'LeftMenu',
 
 	autopaint : true,
 
 	binds : function(){
-		this.appmainheader = new LoginScreenHeader({
-			parent : this
-		});
-
-		this.appmainfooter = new LoginScreenFooter({
-			parent : this
-		});
+		this.addClass("app-left-menu");
 
 		this.base();
 	},
-	
+
 	content : `
 	<div class="login-screen">
 		<div class="login-screen-mask">

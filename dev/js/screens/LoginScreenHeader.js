@@ -9,8 +9,8 @@ var LoginScreenHeader = Templater.extend({
 	},
 
 	events : {
-		'click button' : function(){
-			console.log( this.parent.template_data.$$item__ );
+		'click' : function(){
+			console.log( this.parent.show() );
 		}
 	},
 
