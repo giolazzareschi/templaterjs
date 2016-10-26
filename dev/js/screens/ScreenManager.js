@@ -2,36 +2,20 @@ var ScreenManager = Templater.extend({
 
 	type : 'ScreenManager',
 
-	autopaint : true,
-
-	leftmenu : undefined,
-
-	binds : function(){
-		this.addscreen(
-			new LoginScreen({
-				template_data : this.template_data.$$item__.loginscreen
-			}) 
-		);
-
-		this.addscreen( 
-			new LeftMenu({
-				template_data : this.template_data.$$item__.loginscreen
-			}) 
-		);
-
-		this.render( document.body );
+	require: {
+		url: 'scripts',
+		files: ['HelloWorld']
 	},
 
-	screens : {},
+	binds: function() {
 
-	addscreen : function( screen ){
-		this.screens[ screen.type ] = screen;
+		this.HelloWorld = new HelloWorld();
 
-		screen.append( this.dom );
+		this.HelloWorld.render( this.elements.hello );
 	},
 
-	template : `
-	<div id="appmainstage" appmaincenter></div>
-	`
-
+	template : '' +
+	'<div appmaincenter>' +
+		'<span id="hello"></span>' +
+	'</div>'
 });

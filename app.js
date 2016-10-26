@@ -1,48 +1,18 @@
-const Hapi = require('hapi');
-const Path = require('Path');
+var express = require('express');
+var compression = require('compression')
+var server = express();
 
-// Create a server with a host and port
-const server = new Hapi.Server({
-    connections: {
-        routes: {
-            files: {
-                relativeTo: Path.join(__dirname, 'public')
-            }
-        }
-    }
-});
+server.use(compression());
+server.use(express.static(__dirname + '/public'));
+ 
+var port = 3000;
 
-server.connection({ 
-    host: '0.0.0.0', 
-    port: 3000 
+server.get('/scripts/:file', function(req, res){
+	res.header('Content-Encoding', 'gzip');
+	res.sendFile(__dirname + '/public/build/gzip/' + req.params.file + '.js');
 });
 
 
-server.register(require('inert'), (err) => {
-
-    if (err) {
-        throw err;
-    }
-
-    server.route({
-        method: 'GET',
-        path: '/{param*}',
-        handler: {
-            directory: {
-                path: '.',
-                redirectToSlash: true,
-                index: true,
-                lookupCompressed: true
-            }
-        }
-    });
-
-    server.start((err) => {
-
-        if (err) {
-            throw err;
-        }
-
-        console.log('Server running at:', server.info.uri);
-    });
+server.listen(port, function() {
+    console.log('server listening on port ' + port);
 });

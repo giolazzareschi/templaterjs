@@ -34,7 +34,9 @@ var Binder = Base.extend({
 		if( args && args.dom )
 			this.dom = args.dom;		
 
-		this.template_memo = this.cloneObject( this.template_data );
+		this.template_memo = {
+			'$$item__' : this.cloneObject( this.template_data )
+		};
 
 		this.template_main = this.cloneObject( this.template_data );		
 
@@ -74,6 +76,32 @@ var Binder = Base.extend({
 			}else{
 				this.ends[ end ] = el;
 				root[ pp ] = end;
+			}
+		}
+
+		return ends;
+	},
+
+	flat : function( root, root_type, root_label, ends ){
+
+		if( root_type === undefined )
+			root_type = "";
+
+		if( root_label === undefined )
+			root_label = "";
+
+		if( ends === undefined )
+			ends = {};
+
+		for( pp in root ){
+			var el = root[ pp ], type_array = this.isarray( el ), 
+			type_object = this.isobject( el ), end = root_label + root_type + pp, 
+			type = type_array || type_object;
+			
+			if( type ){
+				this.flat( el, type, end, ends );
+			}else{
+				ends[ "$$item__." + end ] = el;
 			}
 		}
 
@@ -137,7 +165,13 @@ var Binder = Base.extend({
 					var d = tt[ i ], hash = this.template_hash[ d.value ];
 					if( d && hash !== undefined ){
 						this.template_hdom[ d.value ].push( d );
-						d.value = hash;
+						d.$$templatersolo = true;
+						d.$$templatersoloowner = d.ownerElement;
+						if( hash ){
+							d.value = hash;
+						}else{
+							d.ownerElement.removeAttribute( d.name );
+						}
 					}else{
 						var clean = d.name.replace(/\"/gi,"");
 						if( isNaN(clean.match(/\$\$item__./gi) * 1) ){
@@ -216,9 +250,9 @@ var Binder = Base.extend({
 		var el = this.get_data( index_track ), parent = this.templater.__parent;
 
 		if( parent )
-			parent.template_data.$$item__.items[this.templater.__index] = value;
+			parent.template_data.items[this.templater.__index][ el.index ] = value;
 		else
-			this.template_data.$$item__[ el.index ] = value;
+			this.template_data[ el.index ] = value;
 	},
 
 	get_data : function( index_track ){

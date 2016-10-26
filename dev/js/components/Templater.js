@@ -2,7 +2,7 @@ var Templater = Base.extend({
 
 	template : '',
 
-	template_data : {},
+	template_data : undefined,
 
 	child_template : undefined,
 
@@ -16,8 +16,6 @@ var Templater = Base.extend({
 
 	parent : undefined,
 
-	ajax : undefined,
-
 	model : undefined,
 
 	autopaint : false,
@@ -26,24 +24,40 @@ var Templater = Base.extend({
 
 	items : {},
 
-	type : undefined,
+	type : 'Templater',
 
 	isList : false,
 
 	isListItem : false,
 
+	debug : false,
+
+	model : undefined,
+
+	require : undefined,
+
 	listenpaint : function(){		
-		this.setpushpop(this.template_data, "", "");
+		// this.setpushpop(this.template_data, "", "");
 		this.watch();
 	},
 
 	watch : function(){
-		setInterval( this.changes.bind(this), 60 );
+		this.changes_timer = setInterval( this.changes.bind(this), 60 );
 	},
+
+	changes_timer: undefined,
 
 	changes : function(){
 		if( JSON.stringify( this.template_data ) !== JSON.stringify( this.binder.template_main ) ){
+			clearInterval( this.changes_timer );
 			this.deepfind( this.template_data, null, "", "", this.binder.template_main );
+		}
+	},
+
+	setData : function( data ){
+		if( JSON.stringify( data ) !== JSON.stringify( this.binder.template_main ) ){
+			clearInterval( this.changes_timer );
+			this.changes_timer = setTimeout( this.deepfind.bind( this, data, null, "", "", this.binder.template_main ) , 1500 );
 		}
 	},
 
@@ -60,13 +74,10 @@ var Templater = Base.extend({
 			track = token + p + clean;
 
 			if( !clean ){
-				
-				if( !binder_temp )
-					binder_temp = binder.template_main[p];
 
-				if( original !== binder_temp[ p ] ){
+				if( original !== main_ ){
 
-					var dom = this.binder.template_hdom[track];
+					var dom = this.binder.template_hdom["$$item__." + track], dom_;
 
 					if( !dom || !dom.length ){
 						dom = this.items[ p ];
@@ -76,7 +87,7 @@ var Templater = Base.extend({
 
 					if( dom !== undefined && dom.length > 0 ){
 						for(dd in dom){
-							var dom_ = dom[ dd ];
+							dom_ = dom[ dd ];
 
 							if( dom_.$$templatersolo ){
 								var ownerref = dom_.$$templatersoloowner;
@@ -85,7 +96,8 @@ var Templater = Base.extend({
 								}else{
 									ownerref.removeAttribute( dom_.name );
 								}
-								dom_.value = original
+
+								ownerref[dom_.name] = original;
 							}else{
 								if( dom_.ownerElement !== undefined )
 									dom_  = dom_.ownerElement;
@@ -96,18 +108,25 @@ var Templater = Base.extend({
 								if( dom_.textContent !== undefined )
 									dom_.textContent = original;
 							}
-
-							this.react({
-								changed : p,
-								where : root_label,
-								dom : dom_
-							});
 						}
 					}
-					
-					// this.binder.template_main[track] = binder.cloneObject( this.template_data[track] );
 
-					this.update_original( track, this.binder.template_main, this.template_data );
+					this.react({
+						changed : track,
+						dom : dom_,
+						from : main_,
+						to : original
+					});
+
+					this.update_original( track, this.binder.template_main, where );
+
+					this.update_original( track, this.template_data, where );
+					
+					var hashash = this.binder.template_hash['$$item__.' + track];
+					if( hashash !== undefined )
+						this.binder.template_hash['$$item__.' + track] = original;
+
+					this.binder.track();
 
 					break;
 				}
@@ -127,11 +146,19 @@ var Templater = Base.extend({
 			}
 		}
 
+		if( this.autopaint )
+			this.watch();
+
 		return {};
 	},
 
-	update_original : function(track, original, news){		
-		var olevels = track.split("."), i = 0, qt = olevels.length, level, original_, news_;
+	update_original : function(track, original, news){
+		var olevels = track.split("."), i = 0, qt = 0, level, original_ = original, news_ = news;
+		
+		olevels = olevels.filter(function(n){ return n !== "" && n !== undefined && n !== null && n !== "$$item__" });
+
+		qt = olevels.length;
+
 		for( ; i < qt ; i++ ){
 			level = olevels[ i ];
 			if( isNaN(level.match(/[_][0-9]+$/gi)*1) ){								
@@ -139,16 +166,19 @@ var Templater = Base.extend({
 				news_ = news_[ index[0] ][index[1]];
 				original_ = original_[ index[0] ][index[1]];
 			}else{
-				if( !original_ && !news_ ){
+				var inside = typeof original_[ level ];
+				if( inside === typeof {} ){
+					var tt = track.split('.');					
+					for( var x = i; x > -1; x-- )
+						tt.splice(x,1);
+					this.update_original(tt.join('.'), original_[level], news_[level]);
 					news_ = news[ level ];
 					original_ = original[ level ];
 				}else{
-					if( i < qt-1 ){
-						news_ = news_[ level ];
-						original_ = original_[ level ];
-					}else{
+					if( original_[ level ] !== undefined && news_[ level ] !== undefined )
 						original_[ level ] = news_[ level ];
-					}
+					if( original_[ level ] === undefined && news_[ level ] !== undefined )
+						original_[ level ] = news_[ level ];
 				}
 			}
 		}
@@ -182,30 +212,33 @@ var Templater = Base.extend({
 	},
 
 	pop_ : function( array_, track_id, index ){
+
 		this.items = this.reindex( this.items );
 
 		index = index === undefined || index === null ? array_.length-1 : index;
 		
 		array_.splice(index, 1);
 
-
-		this.removed_data(track_id, index)
+		this.removed_data(track_id, index);
 	},
 
 	push_ : function( array_, track_id, item, index ){
+
 		this.items = this.reindex( this.items );
 
 		index = index === undefined || index === null ? array_.length : index;
 		
 		array_.splice(index, 0, item);
 
-
-		this.added_data(track_id, item, index)
+		this.added_data(track_id, item, index);
 	},
 
 	removed_data : function( track_id, index ){
+		
 		var item = this.items[ index ];
+		
 		item.dom.parentNode.removeChild( item.dom );
+
 		delete this.items[String(index)];
 
 		this.items = this.reindex( this.items );
@@ -220,17 +253,33 @@ var Templater = Base.extend({
 				instance = new typed({ 
 					__parent : this,
 					__index : index * 1,
-					template_data : item
+					template_data : item || {}
 				});
 
-				instance.append( this.dom );
+				instance.append( this.dom, index );
 				
-				var i = undefined;
-				for(i in this.items){};
+				var total=0	, newitems={};
+				for( i in this.items ){ total++ };
 
-				this.items[ ( i === undefined ? 0 : (i*1)+1) ] = instance;
+				for( x=0; x < total; x++ ){
+					if( x !== index ){
+						if( x < index )
+							newitems[ x ] = this.items[ x ];
+						else
+							newitems[ x+1 ] = this.items[ x ];
+					}else{
+						newitems[ x ] = instance;				
+						newitems[ x+1 ] = this.items[ x ];
+					}
+				}
+
+				if( x === 0 ) newitems[ 0 ] = instance;
+
+				if( index === total ) newitems[ index ] = instance;
 			}
 		}
+
+		this.items = newitems;
 
 		this.items = this.reindex( this.items );
 
@@ -251,29 +300,27 @@ var Templater = Base.extend({
 	react : function( data ){
 		var reacto = function(){};
 
-		if( this.reactions )
-			reacto = this.reactions[ data.where ];
-
-		reacto.apply( this, [data.dom, data.where] );
+		if( this.reactions ){
+			reacto = this.reactions[ data.changed ];
+			if( reacto )
+				reacto.apply( this, [data.dom, data.from, data.to] );
+		}
 	},
 
-	constructor : function( args ){		
+	constructor : function( args ){
 		if( this.type === undefined ){
-			throw "Type for Class needed."
+			throw "Type for Class needed.";
 		}else{
 			this.items = {};
-			this.template_data = {};
 
-			if( args && args.model !== undefined ){
-				args.model.owner = this;
-				this.ajax = new Ajax( args.model );
-			}else if( this.model !== undefined ){
-				this.model.owner = this;
-				this.ajax = new Ajax( this.model );
-			}
+			if( this.template_data === undefined )
+				this.template_data = {};
 
 			if( args && args.template !== undefined && args.template !== '' )
 				this.template = args.template;
+
+			if( args && args.binds !== undefined )
+				this.binds = args.binds;
 
 			if( args && args.__parent !== undefined )
 				this.__parent = args.__parent;
@@ -282,7 +329,7 @@ var Templater = Base.extend({
 				this.__index = args.__index;
 
 			if( args && args.template_data !== undefined )
-				this.template_data.$$item__ = args.template_data;
+				this.template_data = args.template_data;
 
 			if( args && args.events !== undefined )
 				this.events = args.events;
@@ -291,8 +338,17 @@ var Templater = Base.extend({
 				this.parent = args.parent;
 			
 			if( this.isList )
-				if( this.template_data.$$item__ !== undefined )
-					create_items(this);
+				if( this.template_data !== undefined )
+					this.create_items(this);
+
+			if( args && args.model !== undefined ){
+				args.model.owner = this;
+				this.model = new Requester( args.model ); 
+			}else if( this.model !== undefined ){
+				this.model.owner = this;
+				var temp = this.model;
+				this.model = new Requester( temp );
+			}
 
 			if( this.template !== '' )
 				this.update_dom();
@@ -301,16 +357,45 @@ var Templater = Base.extend({
 				this.autopaint = args && args.autopaint ? args.autopaint : true;
 				this.listenpaint();
 			}
+
+			this.setpushpop(this.template_data, "", "");
+
+			if( args && args.require !== undefined ){
+				args.require.owner = this;
+				this.require = new Requirer( args.require );
+			}else if( this.require !== undefined ){
+				this.require.owner = this;
+				this.require = new Requirer( this.require );
+			}
+		}
+	},
+
+	create_items : function(parent){	
+		var items = parent.template_data.items, model_name = parent.type + 'Item', model = window[model_name], cc = 0;
+
+		model.prototype.type = model_name;
+		model.prototype.isListItem = true;
+
+		for( var i in items ){
+			var tt = new model({
+				__parent : parent,
+				__index  : cc*1,
+				template_data : items[ i ] || {}
+			});
+
+			parent.items[String(cc)] = tt;
+			cc++;
 		}
 	},
 
 	server_get : function(){		
-		this.ajax.get__();
+		
 	},
 
 	hbs : function(){
-		this.update_child_template();		
-		var tpl = !this.autopaint ? this.template_data : (this.binder.template_memo["$$item__"] || this.binder.template_memo);
+		this.update_child_template();
+		// var tpl = !this.autopaint ? this.template_data : (this.binder.template_memo["$$item__"] || this.binder.template_memo);
+		var tpl = this.binder.template_memo["$$item__"] || this.binder.template_memo;
 		return Handlebars.compile( this.template )( tpl );
 	},
 
@@ -328,13 +413,11 @@ var Templater = Base.extend({
 
 	update_dom : function( rollback_dom ){
 
-		if( this.autopaint ){
-			var binder = new Binder({
-				templater : this,
-				template_data : this.template_data
-			});
-			this.binder = binder;
-		}
+		var binder = new Binder({
+			templater : this,
+			template_data : this.template_data
+		});
+		this.binder = binder;
 
 		if( !rollback_dom ){
 			var dom = document.createElement('div');
@@ -347,25 +430,35 @@ var Templater = Base.extend({
 
 		this.get_template_elements();
 
-		if( this.autopaint ){
-			this.binder.dom = this.dom;
-			this.binder.track();
-		}
+		this.binder.dom = this.dom;
+		this.binder.track();
 		
 		for( index in this.items ){
 			this.items[ index ].append( this.dom );
 		}
+		
+		if( !this.require )
+			this.binds();
 
 		for( p in this.events )
 			this.register_events(p, this.events[p]);
+	},
 
-		this.binds();
+	factory : function( proto ){
+		var t = proto.data[0];
+
+		var o = new proto.pattern({
+			template_data : t
+		});
+
+		o.append( proto.renderdom );
 	},
 
 	update_child_template : function(){
-		if( this.child_template !== undefined )
+		if( this.child_template !== undefined ){
 			for( tpl in this.child_template )
 				this.template_data[ tpl ] = Handlebars.compile(this.child_template[ tpl ])(this.template_data);		
+		}
 	},
 
 	get_dom : function(){
@@ -416,9 +509,15 @@ var Templater = Base.extend({
 		receiver.appendChild( this.dom );
 	},
 
-	append : function( receiver ){
-		this.receiver = receiver;		
-		receiver.appendChild( this.dom );
+	append : function( receiver, index ){
+		if( index === undefined ){
+			this.receiver = receiver;		
+			receiver.appendChild( this.dom );
+		}else{
+			var sib = receiver.children[ index ];
+			this.receiver = receiver;
+			this.receiver.insertBefore( this.dom, sib );
+		}
 	},
 
 	clear : function( receiver ){
@@ -452,7 +551,10 @@ var Templater = Base.extend({
 	},
 
 	destroy : function(){
-		this.dom.parentNode.removeChild( this.dom );
+
+		if( this.dom.parentNode )
+			this.dom.parentNode.removeChild( this.dom );
+		
 		delete this;
 	}
 
