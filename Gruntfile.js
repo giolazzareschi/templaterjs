@@ -45,6 +45,7 @@ module.exports = function(grunt) {
 			bundle: {
 				files: {
 					'public/build/scripts/bundle.js': [
+						'dev/js/base/fastdom.min.js',
 						'dev/js/base/Handlebars.4.0.5.js',
 						'dev/js/base/findAndReplaceDOMText.js',
 						'dev/js/base/Base.js',
@@ -73,6 +74,7 @@ module.exports = function(grunt) {
 				},
 				files: grunt.file.expandMapping([
 					'dev/js/**/*.js',
+					'!dev/js/base/fasdom.min.js',
 					'!dev/js/base/Handlebars.4.0.5.js',
 					'!dev/js/base/findAndReplaceDOMText.js',
 					'!dev/js/base/Base.js',
@@ -99,6 +101,7 @@ module.exports = function(grunt) {
 		    files: [
 		      {expand: true, flatten : true , src: [
 					'dev/js/**/*.js',
+					'!dev/js/base/fastdom.min.js',
 					'!dev/js/base/Handlebars.4.0.5.js',
 					'!dev/js/base/findAndReplaceDOMText.js',
 					'!dev/js/base/Base.js',
@@ -137,6 +140,7 @@ module.exports = function(grunt) {
 			},
 			dev: {
 				src: [
+					'dev/js/base/fastdom.min.js',
 					'dev/js/base/Handlebars.4.0.5.js',
 					'dev/js/base/findAndReplaceDOMText.js',
 					'dev/js/base/Base.js',
@@ -153,7 +157,8 @@ module.exports = function(grunt) {
 		},
 		watch: {
 			bundle : {
-				files : ['dev/js/base/Handlebars.4.0.5.js',
+				files : ['dev/js/base/fastdom.min.js',
+						'dev/js/base/Handlebars.4.0.5.js',
 						'dev/js/base/findAndReplaceDOMText.js',
 						'dev/js/base/Base.js',
 						'dev/js/components/Ajax.js',
@@ -171,6 +176,7 @@ module.exports = function(grunt) {
 			scripts: {
 				files : [
 					'dev/js/**/*.js',
+					'!dev/js/base/fastdom.min.js',
 					'!dev/js/base/Handlebars.4.0.5.js',
 					'!dev/js/base/findAndReplaceDOMText.js',
 					'!dev/js/base/Base.js',

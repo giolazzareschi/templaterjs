@@ -547,6 +547,7 @@ var Templater = Base.extend({
 	},
 
 	remove : function(){
+		
 		this.dom.parentNode.removeChild( this.dom );		
 	},
 
