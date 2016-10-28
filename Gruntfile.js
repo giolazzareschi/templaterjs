@@ -94,6 +94,23 @@ module.exports = function(grunt) {
 						return destBase + filename;
 					}
 				})
+			},
+			prod: {
+				options: {
+					mangle: {
+						toplevel: false
+					},
+					squeeze: {
+						dead_code: true
+					},
+					codegen: {
+						quote_keys: false
+					},
+					sourceMap: false
+				},
+				files: {
+					'dist/templater.min.js' :'dist/templater.js'
+				}
 			}
 		},
 		copy: {
@@ -153,6 +170,20 @@ module.exports = function(grunt) {
 					'dev/js/bundle.js'
 				],
 				dest: 'public/build/bundle.js',
+			},
+			prod: {
+				src: [
+					'dev/js/base/Handlebars.4.0.5.js',
+					'dev/js/base/findAndReplaceDOMText.js',
+					'dev/js/base/Base.js',
+					'dev/js/components/Ajax.js',
+					'dev/js/components/Binder.js',
+					'dev/js/components/Requester.js',
+					'dev/js/components/Requirer.js',
+					'dev/js/components/Templater.js',
+					'dev/js/components/TemplaterList.js'
+				],
+				dest: 'dist/templater.js',
 			}
 		},
 		watch: {
@@ -224,4 +255,5 @@ module.exports = function(grunt) {
 	grunt.registerTask('default', ['stylus', 'cssmin', 'uglify:bundle', 'uglify:dist', 'compress']);
 	grunt.registerTask('dev', ['stylus', 'cssmin', 'concat:dev','copy:main','compress:main']);
 	grunt.registerTask('wdev', ['watch']);
+	grunt.registerTask('prod', ['concat:prod','uglify:prod']);
 };

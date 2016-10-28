@@ -57,7 +57,7 @@ var Templater = Base.extend({
 	setData : function( data ){
 		if( JSON.stringify( data ) !== JSON.stringify( this.binder.template_main ) ){
 			clearInterval( this.changes_timer );
-			this.changes_timer = setTimeout( this.deepfind.bind( this, data, null, "", "", this.binder.template_main ) , 1500 );
+			this.changes_timer = setTimeout( this.deepfind.bind( this, data, null, "", "", this.binder.template_main ) , 60 );
 		}
 	},
 
