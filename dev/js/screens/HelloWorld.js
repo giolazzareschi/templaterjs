@@ -8,7 +8,7 @@ var HelloWorld = Templater.extend({
 	},
 
 	template_data: {
-		name : 'Things to do:',
+		name : 'Press play to start a new thread:',
 		tasks : []
 	},
 
@@ -24,7 +24,7 @@ var HelloWorld = Templater.extend({
 	},
 
 	events: {
-		'click button': function() {
+		'click span': function() {
 
 			this.List.add({id: 1, name : ''});
 		}
@@ -32,7 +32,7 @@ var HelloWorld = Templater.extend({
 
 	template: '' +
 		'<div class="hello-world-container">'+
-			'<div>{{name}}</div><button>Create new item:</button>'+
+			'<div>{{name}}</div><span class="icon-play-1"></span>'+
 			'<div id="listwrap"></div>'+
 		'</div>'
 

@@ -4,6 +4,11 @@ var ListItem = Templater.extend({
 
 	// autopaint: true,
 
+	require: {
+		url: 'scripts',
+		files: ['Crono']
+	},
+
 	template_data: {
 		id : 0,
 		name: ''
@@ -16,6 +21,13 @@ var ListItem = Templater.extend({
 		arguments[0].template_data.name = '';
 
 		this.base.apply(this, arguments);
+	},
+
+	binds: function() {
+
+		this.Crono = new Crono();
+
+		this.Crono.render( this.elements.crono );		
 	},
 
 	events: {
@@ -38,6 +50,7 @@ var ListItem = Templater.extend({
 	template: '' +
 		'<div class="hello-world-list-item">'+
 			'<div class="title-area" dataid="{{id}}"></div>'+
+			'<div id="crono"></div>'+
 			'<div class="names-area"><input value="{{name}}" /><button id="remove">X</button></div>'+
 		'</div>'
 
