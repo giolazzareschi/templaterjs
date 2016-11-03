@@ -134,10 +134,12 @@ var Binder = Base.extend({
 				}
 			};
 			
-			finds = findAndReplaceDOMText( this.dom , {
-				find : index,
-				replace : finaldata
-			});
+			if( this.dom ){
+				finds = findAndReplaceDOMText( this.dom , {
+					find : index,
+					replace : finaldata
+				});
+			}
 
 			this.findInputs( this.dom );
 

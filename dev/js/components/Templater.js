@@ -36,16 +36,15 @@ var Templater = Base.extend({
 
 	require : undefined,
 
+	changes_timer: undefined,
+
 	listenpaint : function(){		
-		// this.setpushpop(this.template_data, "", "");
 		this.watch();
 	},
 
 	watch : function(){
 		this.changes_timer = setInterval( this.changes.bind(this), 60 );
 	},
-
-	changes_timer: undefined,
 
 	changes : function(){
 		if( JSON.stringify( this.template_data ) !== JSON.stringify( this.binder.template_main ) ){
@@ -62,9 +61,10 @@ var Templater = Base.extend({
 	},
 
 	deepfind : function( where, binder_temp, token, root_label, main_data ){
+
 		if( token === undefined ) token = "";
 
-		var binder = this.binder;
+		var binder = this.binder, binder_;
 
 		for( var p in where ){
 			var original = where[ p ],
@@ -118,29 +118,52 @@ var Templater = Base.extend({
 						to : original
 					});
 
-					this.update_original( track, this.binder.template_main, where );
-
-					this.update_original( track, this.template_data, where );
+					this.update_original( track, this.binder.template_main, this.template_data );
 					
 					var hashash = this.binder.template_hash['$$item__.' + track];
 					if( hashash !== undefined )
 						this.binder.template_hash['$$item__.' + track] = original;
 
-					this.binder.track();
+					if( dom ){
+						this.binder.track();
+					}
 
 					break;
 				}
 			}else{
 
-				if( binder.isarray( main_ ) ){
-					if( main_.length !== original.length ){
-						this.binder.template_main = binder.cloneObject( this.template_data );
+				binder_ = binder_temp ? binder_temp[p] : binder.template_main[p];
 
-						break;
+				if( clean === "_" ){
+					if( original.length === main_.length ){
+
+						if( JSON.stringify(original) !== JSON.stringify(main_) ){
+
+							this.react({
+								changed : track.replace(/[_][0-9]|\_$/gi,''),
+								dom : null,
+								from : binder.cloneObject( main_ ),
+								to : original
+							});
+						}
+					}else{
+
+						this.react({
+							changed : track.replace(/[_][0-9]|\_$/gi,''),
+							dom : null,
+							from : binder.cloneObject( main_ ),
+							to : original
+						});
+
+						this.binder = new Binder({
+							templater : this,
+							template_data : this.template_data
+						});
+
+
+						break;					
 					}
 				}
-
-				binder_ = binder_temp ? binder_temp[p] : binder.template_main[p];
 
 				this.deepfind( original, binder_, track, p, main_ );
 			}
@@ -171,9 +194,7 @@ var Templater = Base.extend({
 					var tt = track.split('.');					
 					for( var x = i; x > -1; x-- )
 						tt.splice(x,1);
-					this.update_original(tt.join('.'), original_[level], news_[level]);
-					news_ = news[ level ];
-					original_ = original[ level ];
+					return this.update_original(tt.join('.'), original_[level], news_[level]);
 				}else{
 					if( original_[ level ] !== undefined && news_[ level ] !== undefined )
 						original_[ level ] = news_[ level ];
@@ -189,51 +210,53 @@ var Templater = Base.extend({
 
 		var binder = this.binder;		
 
-		for( var p in where ){
-			var original = where[ p ],
-			isarray = binder.isarray( original ),
-			clean = isarray || binder.isobject( original ), 
-			track = token + p + clean;
+		if( this.isList ){
+			for( var p in where ){
+				var original = where[ p ],
+				isarray = binder.isarray( original ),
+				clean = isarray || binder.isobject( original ), 
+				track = token + p + clean;
 
-			if( typeof original === "function ") continue;
+				if( typeof original === "function ") continue;
 
-			if( clean && isarray ){
-				if( original.$$pushpop === undefined ){
-					original.$$pushpop = +new Date;
-					original.pop = this.pop_.bind(this, original, track.slice(0, -1));
-					original.push = this.push_.bind(this, original, track.slice(0, -1));
+				if( clean && isarray ){
+					if( original.$$pushpop === undefined ){
+						original.$$pushpop = +new Date;
+						original.pop = this.pop_.bind(this);
+						original.push = this.push_.bind(this);
+					}
 				}
+
+				if( clean === "" && isarray === "" ) break;
+
+				this.setpushpop( original, track, p );
 			}
-
-			if( clean === "" && isarray === "" ) break;
-
-			this.setpushpop( original, track, p );
 		}
 	},
 
-	pop_ : function( array_, track_id, index ){
+	pop_ : function( index ){
 
 		this.items = this.reindex( this.items );
 
-		index = index === undefined || index === null ? array_.length-1 : index;
+		index = index === undefined || index === null ? this.template_data.items.length-1 : index;
 		
-		array_.splice(index, 1);
+		this.template_data.items.splice(index, 1);
 
-		this.removed_data(track_id, index);
+		this.removed_data(index);
 	},
 
-	push_ : function( array_, track_id, item, index ){
+	push_ : function( item, index ){
 
 		this.items = this.reindex( this.items );
 
-		index = index === undefined || index === null ? array_.length : index;
+		index = index === undefined || index === null ? this.template_data.items.length : index;
 		
-		array_.splice(index, 0, item);
+		this.template_data.items.splice(index, 0, item);
 
-		this.added_data(track_id, item, index);
+		this.added_data(item, index);
 	},
 
-	removed_data : function( track_id, index ){
+	removed_data : function( index ){
 		
 		var item = this.items[ index ];
 		
@@ -244,9 +267,11 @@ var Templater = Base.extend({
 		this.items = this.reindex( this.items );
 
 		this.binder.template_main = this.binder.cloneObject( this.template_data );	
+		
+		this.binder.track();
 	},
 
-	added_data : function( track_id, item, index ){
+	added_data : function( item, index ){
 		if( this.isList && this.isList === true ){
 			var typed = window[ this.type + 'Item' ], instance;
 			if( typed ){
@@ -283,7 +308,9 @@ var Templater = Base.extend({
 
 		this.items = this.reindex( this.items );
 
-		this.binder.template_main = this.binder.cloneObject( this.template_data );	
+		this.binder.template_main = this.binder.cloneObject( this.template_data );
+
+		this.binder.track();
 	},
 
 	reindex : function( items ){
@@ -338,7 +365,7 @@ var Templater = Base.extend({
 				this.parent = args.parent;
 			
 			if( this.isList )
-				if( this.template_data !== undefined )
+				if( this.template_data.items.length )
 					this.create_items(this);
 
 			if( args && args.model !== undefined ){

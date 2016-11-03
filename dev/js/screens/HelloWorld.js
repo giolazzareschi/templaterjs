@@ -2,14 +2,15 @@ var HelloWorld = Templater.extend({
 
 	type: 'HelloWorld',
 
+	// autopaint: true,
+
 	require: {
 		url: 'scripts',
 		files: ['List','ListItem']
 	},
 
 	template_data: {
-		name : 'Press play to start a new thread:',
-		tasks : []
+		tasks: []
 	},
 
 	binds: function() {
@@ -30,9 +31,15 @@ var HelloWorld = Templater.extend({
 		}
 	},
 
+	reactions: {
+		'pizzas.tasks': function() {
+			console.log( arguments );
+		}
+	},
+
 	template: '' +
 		'<div class="hello-world-container">'+
-			'<div>{{name}}</div><span class="icon-play-1"></span>'+
+			'<span class="icon-play-1"></span>'+
 			'<div id="listwrap"></div>'+
 		'</div>'
 
