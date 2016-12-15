@@ -5,7 +5,7 @@ module.exports = function(grunt) {
 			compile: {
 				options: {
 					paths: ['styl'],
-					import: ['_vars']
+					import: [__dirname + '/dev/styl/_vars']
 				},
 				files: {
 					'dev/grunt/styl.css': ['dev/styl/**/*.styl']
