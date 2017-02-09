@@ -2,7 +2,7 @@ var TemplaterList = Templater.extend({
 
 	isList : true,
 
-	push : function( data, index ){
+	add : function( data, index ){
 
 		this.template_data.items.push.call(this, data, index);
 

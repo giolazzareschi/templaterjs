@@ -45,18 +45,18 @@ var Requirer = Base.extend({
 				files.every(function(file){
 					if( !window[file] ){
 
-						// var sc = document.createElement('script');
+						var sc = document.createElement('script');
 
-						// sc.src = me.config.url + '/' + file;
+						sc.src = me.config.url + '/' + file;
 
-						// sc.onload = function(e){
+						sc.onload = function(e){
 
-						// 	count++;
-						// 	if( count === me.total )
-						// 		resolve();
-						// };
+							count++;
+							if( count === me.total )
+								resolve();
+						};
 
-						// document.head.appendChild( sc );
+						document.head.appendChild( sc );
 
 						var ajax = new Ajax({
 							url : me.config.url + '/' + file,

@@ -32,3 +32,111 @@ a
 input
 	padding: 1em
 	border: 1px solid #ccc
+	outline: none
+
+#entry_point
+	position: absolute
+	top: 0px
+	left: 0px
+	height: 100%
+	border:1px solid #ddd
+	box-shadow 0px 0px 15px -4px #000
+	background-color: #fff
+	width: 100%
+	right: 0px
+	bottom: 0px
+	margin: auto
+	will-change: width
+	displayflex: flex
+	displayflexdirection: column
+	overflow-y: auto
+
+	.main-header
+		border-bottom: 1px solid #dedede
+		flex: 0 0 80px
+		box-shadow: 0 -2px 7px -2px #000
+		z-index: 2
+		position: relative
+		
+		.roundedbutton
+			top: 80px
+			font-size: 2.5em
+		
+		ul
+			displayflex: flex
+			li
+				flex: 0 0 40px
+				padding: 23px 0px 22px
+				text-align: center
+
+				&.main-button
+					line-height: 15px
+					font-size: 20px
+					color: #888
+					flex: 0 0 60px
+				
+				&.logo
+					flex: 1 0 auto
+					padding: 0px
+					line-height: 65px
+					text-align: left
+
+	.main-footer
+		flex: 0 0 0px
+
+.centerize
+	width: 1024px
+	margin: 0px auto
+	
+.hide
+	display: none
+	
+.fleft
+	float:left
+
+.fright
+	float:right
+	
+.fclear
+	clear:both
+	
+.warn
+	font-size: 20px
+	
+	&.success
+		color: #45d
+
+.btn-basic
+	padding: .7em 1em
+	border-radius: 3px
+	margin-right: .5em
+	box-shadow: 0px 1px 4px -1px #333
+	background-image: linear-gradient(#eee, #dfdfdf)
+	border: 1px solid #eee
+	text-shadow: 1px 1px #fff
+	font-size: .8em
+	color: #222
+
+div[appmaincenter]
+	display: flex
+	displayflexdirection: column
+	height: 100%
+
+	div[appmainheader], div[appmainfooter]
+		flex: 0 0 140px
+		z-index: 1
+		position: relative
+
+	div[appmaincontent]
+		flex: 1 0 auto
+		position: relative
+		z-index: 1
+
+	div[appmainheader]
+		z-index: 2
+		box-shadow: 0px 0px 3px -1px #000
+		background-color: #234059
+		color: #fff
+	
+	div[appmainfooter]
+		background-color: #5681A6

@@ -18,8 +18,6 @@ var Templater = Base.extend({
 
 	model : undefined,
 
-	autopaint : false,
-
 	binder : {},
 
 	items : {},
@@ -36,31 +34,35 @@ var Templater = Base.extend({
 
 	require : undefined,
 
-	changes_timer: undefined,
+	ispropagating: false,
 
-	listenpaint : function(){		
-		this.watch();
-	},
+	templaterwachter: undefined,
 
-	watch : function(){
-		this.changes_timer = setInterval( this.changes.bind(this), 60 );
-	},
-
-	changes : function(){
+	changes : function(ispropagating){
 		if( JSON.stringify( this.template_data ) !== JSON.stringify( this.binder.template_main ) ){
-			clearInterval( this.changes_timer );
+			if( ispropagating )
+				this.ispropagating = ispropagating;
 			this.deepfind( this.template_data, null, "", "", this.binder.template_main );
 		}
 	},
 
 	setData : function( data ){
 		if( JSON.stringify( data ) !== JSON.stringify( this.binder.template_main ) ){
-			clearInterval( this.changes_timer );
-			this.changes_timer = setTimeout( this.deepfind.bind( this, data, null, "", "", this.binder.template_main ) , 60 );
+			this.deepfind( data, null, "", "", this.binder.template_main );
 		}
 	},
 
-	deepfind : function( where, binder_temp, token, root_label, main_data ){
+	createWatch: function() {
+		if( !window.$$templaterwachter ){
+			window.$$templaterwachter = this.templaterwachter = new TemplaterWatcher();
+		}else{
+			this.templaterwachter = window.$$templaterwachter;
+		}
+
+		this.templaterwachter.register(this);
+	},
+
+	deepfind: function( where, binder_temp, token, root_label, main_data ){
 
 		if( token === undefined ) token = "";
 
@@ -71,18 +73,23 @@ var Templater = Base.extend({
 			isarray = binder.isarray( original ),
 			main_ = main_data[ p ],
 			clean = isarray || binder.isobject( original ), 
-			track = token + p + clean;
+			track = token + p + clean,
+			clean_track = track.replace(/[_][0-9]|\_$/gi,'');
 
 			if( !clean ){
 
 				if( original !== main_ ){
 
-					var dom = this.binder.template_hdom["$$item__." + track], dom_;
+					var dom = this.binder.template_hdom["{{$$item__." + track + "}}"], dom_;
 
-					if( !dom || !dom.length ){
-						dom = this.items[ p ];
-						if( dom && dom.__parent !== undefined )
-							dom = dom.binder.template_hdom['item_' + p];
+					if( typeof dom === "undefined" ){
+						if( !this.isList ){
+							dom = this.items[ p ];
+							if( dom && dom.__parent !== undefined )
+								dom = dom.binder.template_hdom['item_' + p];
+						}else{
+							dom = this.items[ root_label ].binder.template_hdom["{{$$item__." + p + "}}"];
+						}
 					}
 
 					if( dom !== undefined && dom.length > 0 ){
@@ -90,36 +97,40 @@ var Templater = Base.extend({
 							dom_ = dom[ dd ];
 
 							if( dom_.$$templatersolo ){
-								var ownerref = dom_.$$templatersoloowner;
-								if( original ){
-									ownerref.setAttributeNode( dom_ );
+								if( dom_.$$templatersoloowner ){
+									if( original !== false )
+										dom_.$$templatersoloowner.setAttribute(dom_.name, original);
+									else
+										dom_.$$templatersoloowner.removeAttribute(dom_.name);
 								}else{
-									ownerref.removeAttribute( dom_.name );
+									if( original !== false )
+										dom_.ownerElement.setAttribute(dom_.name, original);
+									else
+										dom_.ownerElement.removeAttribute(dom_.name);
 								}
-
-								ownerref[dom_.name] = original;
 							}else{
-								if( dom_.ownerElement !== undefined )
+								if( typeof dom_.ownerElement !== 'undefined' )
 									dom_  = dom_.ownerElement;
 								
-								if( dom_.value !== undefined )
+								if( typeof dom_.value !== 'undefined' )
 									dom_.value = original;
 
-								if( dom_.textContent !== undefined )
+								if( typeof dom_.textContent !== 'undefined' )
 									dom_.textContent = original;
 							}
 						}
 					}
 
-					this.react({
-						changed : track,
-						dom : dom_,
-						from : main_,
-						to : original
-					});
+					this.update_original_simple( track, this.template_data, original );
 
-					this.update_original( track, this.binder.template_main, this.template_data );
-					
+					if( !main_data.join )
+						this.react({
+							changed : track,
+							dom : dom_,
+							from : main_,
+							to : original
+						});
+						
 					var hashash = this.binder.template_hash['$$item__.' + track];
 					if( hashash !== undefined )
 						this.binder.template_hash['$$item__.' + track] = original;
@@ -127,41 +138,25 @@ var Templater = Base.extend({
 					if( dom ){
 						this.binder.track();
 					}
-
-					break;
 				}
 			}else{
 
 				binder_ = binder_temp ? binder_temp[p] : binder.template_main[p];
 
-				if( clean === "_" ){
-					if( original.length === main_.length ){
+				if( clean == "_" ){
 
-						if( JSON.stringify(original) !== JSON.stringify(main_) ){
+					main_ = this.isList && main_data.hasOwnProperty('items') ? main_data['items'] : main_data[ p ];
+					
+					if( JSON.stringify(original) !== JSON.stringify(main_) ){
 
-							this.react({
-								changed : track.replace(/[_][0-9]|\_$/gi,''),
-								dom : null,
-								from : binder.cloneObject( main_ ),
-								to : original
-							});
-						}
-					}else{
+						this.update_original_simple( clean_track, this.template_data, original );
 
 						this.react({
-							changed : track.replace(/[_][0-9]|\_$/gi,''),
+							changed : clean_track,
 							dom : null,
 							from : binder.cloneObject( main_ ),
 							to : original
 						});
-
-						this.binder = new Binder({
-							templater : this,
-							template_data : this.template_data
-						});
-
-
-						break;					
 					}
 				}
 
@@ -169,14 +164,11 @@ var Templater = Base.extend({
 			}
 		}
 
-		if( this.autopaint )
-			this.watch();
-
 		return {};
 	},
 
-	update_original : function(track, original, news){
-		var olevels = track.split("."), i = 0, qt = 0, level, original_ = original, news_ = news;
+	update_original_simple : function(track, original, value){
+		var olevels = track.split("."), i = 0, qt = 0, level, original_ = original;
 		
 		olevels = olevels.filter(function(n){ return n !== "" && n !== undefined && n !== null && n !== "$$item__" });
 
@@ -186,20 +178,26 @@ var Templater = Base.extend({
 			level = olevels[ i ];
 			if( isNaN(level.match(/[_][0-9]+$/gi)*1) ){								
 				var index = level.split("_");
-				news_ = news_[ index[0] ][index[1]];
-				original_ = original_[ index[0] ][index[1]];
+				original_ = original_[ this.isList && original_.hasOwnProperty('items') ? 'items' : index[0] ][index[1]];
 			}else{
-				var inside = typeof original_[ level ];
-				if( inside === typeof {} ){
+				var inside = original_[ level ];
+				if( !inside.join && typeof inside === 'object' ){
 					var tt = track.split('.');					
 					for( var x = i; x > -1; x-- )
 						tt.splice(x,1);
-					return this.update_original(tt.join('.'), original_[level], news_[level]);
+					return this.update_original_simple(tt.join('.'), inside, value);
 				}else{
-					if( original_[ level ] !== undefined && news_[ level ] !== undefined )
-						original_[ level ] = news_[ level ];
-					if( original_[ level ] === undefined && news_[ level ] !== undefined )
-						original_[ level ] = news_[ level ];
+					if(inside.join){
+						var s=0, new_end = value.length;
+						while(inside.length)
+							inside.pop();
+						for(; s<new_end; s++)
+							inside.push(value[s]);
+					}else{
+						original_[ level ] = value; 
+						this.binder.template_data = this.template_data;
+						this.binder.template_main = this.binder.cloneObject( this.template_data );
+					}
 				}
 			}
 		}
@@ -257,22 +255,28 @@ var Templater = Base.extend({
 	},
 
 	removed_data : function( index ){
-		
-		var item = this.items[ index ];
-		
-		item.dom.parentNode.removeChild( item.dom );
+		if( this.isList && this.isList === true ){
+			var item = this.items[ index ];
+			
+			this.binder.dom = this.dom;
 
-		delete this.items[String(index)];
+			this.dom.removeChild( this.dom.children[index] );
 
-		this.items = this.reindex( this.items );
+			delete this.items[String(index)];
 
-		this.binder.template_main = this.binder.cloneObject( this.template_data );	
-		
-		this.binder.track();
+			this.items = this.reindex( this.items );
+
+			this.binder.template_main = this.binder.cloneObject( this.template_data );	
+			
+			this.binder.track();
+		}
 	},
 
 	added_data : function( item, index ){
 		if( this.isList && this.isList === true ){
+
+			this.binder.dom = this.dom;
+
 			var typed = window[ this.type + 'Item' ], instance;
 			if( typed ){
 				instance = new typed({ 
@@ -332,6 +336,11 @@ var Templater = Base.extend({
 			if( reacto )
 				reacto.apply( this, [data.dom, data.from, data.to] );
 		}
+
+		if( !this.ispropagating ){
+			this.ispropagating = false;
+			this.templaterwachter.propagate(this.type);
+		}
 	},
 
 	constructor : function( args ){
@@ -365,8 +374,9 @@ var Templater = Base.extend({
 				this.parent = args.parent;
 			
 			if( this.isList )
-				if( this.template_data.items.length )
-					this.create_items(this);
+				if( this.template_data.items )
+					if( this.template_data.items.length )
+						this.create_items(this);
 
 			if( args && args.model !== undefined ){
 				args.model.owner = this;
@@ -380,11 +390,6 @@ var Templater = Base.extend({
 			if( this.template !== '' )
 				this.update_dom();
 
-			if( (args && args.autopaint) || this.autopaint ){
-				this.autopaint = args && args.autopaint ? args.autopaint : true;
-				this.listenpaint();
-			}
-
 			this.setpushpop(this.template_data, "", "");
 
 			if( args && args.require !== undefined ){
@@ -394,16 +399,20 @@ var Templater = Base.extend({
 				this.require.owner = this;
 				this.require = new Requirer( this.require );
 			}
+
+			this.createWatch();
 		}
+
+		return this;
 	},
 
-	create_items : function(parent){	
+	create_items : function(parent){
 		var items = parent.template_data.items, model_name = parent.type + 'Item', model = window[model_name], cc = 0;
 
 		model.prototype.type = model_name;
 		model.prototype.isListItem = true;
 
-		for( var i in items ){
+		for( var i=0, e=items.length; i<e; i++ ){
 			var tt = new model({
 				__parent : parent,
 				__index  : cc*1,
@@ -413,17 +422,6 @@ var Templater = Base.extend({
 			parent.items[String(cc)] = tt;
 			cc++;
 		}
-	},
-
-	server_get : function(){		
-		
-	},
-
-	hbs : function(){
-		this.update_child_template();
-		// var tpl = !this.autopaint ? this.template_data : (this.binder.template_memo["$$item__"] || this.binder.template_memo);
-		var tpl = this.binder.template_memo["$$item__"] || this.binder.template_memo;
-		return Handlebars.compile( this.template )( tpl );
 	},
 
 	binds : function(){
@@ -438,18 +436,21 @@ var Templater = Base.extend({
 		this.dom.classList.remove("hide");
 	},
 
-	update_dom : function( rollback_dom ){
-
-		var binder = new Binder({
+	createBinder: function() {
+		this.binder = new Binder({
 			templater : this,
 			template_data : this.template_data
 		});
-		this.binder = binder;
+	},
+
+	update_dom : function( rollback_dom ){
+
+		this.createBinder();
 
 		if( !rollback_dom ){
 			var dom = document.createElement('div');
 			dom.innerHTML = this.hbs();
-			this.dom = dom.children[0];
+			this.dom = dom.firstChild;
 		}else{
 			this.dom = rollback_dom;
 			this.buffer_rollback = undefined;
@@ -481,11 +482,14 @@ var Templater = Base.extend({
 		o.append( proto.renderdom );
 	},
 
-	update_child_template : function(){
-		if( this.child_template !== undefined ){
-			for( tpl in this.child_template )
-				this.template_data[ tpl ] = Handlebars.compile(this.child_template[ tpl ])(this.template_data);		
-		}
+	hbs : function(){
+		var tpl = (this.binder.template_memo["$$item__"] || this.binder.template_memo);
+
+		if( typeof this.child_template !== 'undefined' )
+			tpl.modalcontent = Handlebars.compile(this.child_template.modalcontent)(tpl);
+
+		
+		return Handlebars.compile( this.template )( tpl );
 	},
 
 	get_dom : function(){
@@ -572,13 +576,12 @@ var Templater = Base.extend({
 			this.receiver.appendChild( this.dom );
 		}
 	},
-
-	remove : function(){
-		
-		this.dom.parentNode.removeChild( this.dom );		
+	remove: function(){
+		if( this.dom )
+			if( this.dom.parentNode )
+				this.dom.parentNode.removeChild( this.dom );		
 	},
-
-	destroy : function(){
+	destroy: function(){
 
 		if( this.dom.parentNode )
 			this.dom.parentNode.removeChild( this.dom );

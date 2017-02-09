@@ -42,6 +42,11 @@ var Requester = Base.extend({
 
 		this.data['method'] = this.method;
 
+		if( typeof this.url === typeof function(){} )
+			this.data['url'] = this.url.call( this.owner );
+		else
+			this.data['url'] = this.url;
+
 		var hds = {
 			'Content-Type': 'application/json',
 			'Accept': 'application/json'
@@ -63,6 +68,11 @@ var Requester = Base.extend({
 		this.method = 'POST';
 		
 		this.data['method'] = this.method;
+
+		if( typeof this.url === typeof function(){} )
+			this.data['url'] = this.url.call( this.owner );
+		else
+			this.data['url'] = this.url;
 
 		var hds = {
 			'Content-Type': 'application/json',

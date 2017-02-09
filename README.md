@@ -23,104 +23,43 @@ So, basicaly this framework uses this above libs to create a simple pattern to d
 
 * Create a simple .html file structure
 * Add this line in head or body
-```html
+``` html
 <script src="paths/maybemorepaths/templater.min.js" />
 ```
 
 **Very basic example:**
 Well, better than explain is execute:
 
-```javascript
- /**
-    Create a class that inherits from Templater.
-    Basic Base.js syntax here.
- **/
-var Hello = Templater.extend({
-
-  /**
-      "require" is the AMD loader system. You basicaly points which url will serve other files
-      and the name of the classes which will be returned.
-      This current object just will start working after all depedencies are loaded.
-      "World" is another class we'll in the next code.
-  require: {
-      url: 'scripts',
-      files: ['World']
-  },
-  **/
-
-  /**
-      "templater_data" is where you put structured data to be renderd in the "template" string.
-  **/
-  template_data: {
-    hello: 'Hello'
-  },
-
-  /**
-      "events" is, well, the events api. 
-      First argument is the event name (like 'click' or 'blur') to binded to the element dom, 
-      from the second string you start to specify the css selector to find the element.
-      If you inform just the event name, you gonna bind the callback to the root element.
-  **/
-  events: {
-    /**
-      "click" then "selector".     
-    **/
-    'click #main_message': function() {
-      console.log( this, this.elements ); // "this" is the class instance (Hello in this example).
+```javascript:
+  var Hello = Templater.extend({ // Create a class thaat inherits from Templater. Basic Base.js syntax here.
+  
+    template_data : { // "templater_data" is where you put structured data to be renderd in the "template" string.
+      username : 'Default username' // a data.
     },
-    /**
-      binds and click event to the root DOM element.
-    **/
-    'click': function() {
-    }
-  },
-
-  /**
-      Here goes the Handlebars template system. The systax is pure handlebars.
-      If you want create inner elements, pay attention to the TemplaterList special object.
-      We will talk about it later.
-  **/
-  template : '' +
-    '<div>' +
-      '<h1 id="main_message">{{hello}} <span id="worldplace"></span>.</h1>'+
-    '</div>',
-
-    /**
-      "binds" is a funcion called after the object is created and ready to interact with other 
-      objects in your app context. 
-      Here is where you can start "bind" other stuff to your object.
-    **/
-    binds:  function(){
-
-      this.render( document.body );
-
-      this.World = new World();
-
-      this.World.render( this.elements.worldplace );
-
-      var me = this;
-      setTimeout(function(){
-        me.World.setData({
-          world: 'Changed'
-        });
-      },2000);
-    }
-});
-
-var World = Templater.extend({
-
-  type: 'World',
-
-  template_data: {
-    world: 'World'
-  },
-
-  template : '' +    
-    '<label>{{world}}</label>'
-});
-
-/**
-  Go to console browser and write this.
-**/
-var hello = new Hello();
+  
+    events : { // "events" api. First argument is the event, from second is the selector.
+      'click #main_message' : function(){ // "click" then "selector". 
+        console.log( this, this.elements ); // "this" is the class instance (Hello in this example).
+      }
+    },
+  
+    template : '' + // the page template to be rendered.
+      '<div>' + // ALWAYS START WITH A DIV wrapping all stuff around.
+        '<h1 id="main_message">Hey {{username}}.</h1>'+ // The stuff. All elements with "id" attr will be mapped in "this.elements"
+      '</div>'
+  });
+  
+  var hello = new Hello(); // Create an hello object. 
+  
+  hello.render( document.body ); // Render the object in somewhere. In this case, the document.body
+  
+  setTimeout( function(){ // just for testing purposes, after 5 secs repaint something.
+  
+    hello.template_data = { // change the template data on the fly.
+      username : 'New name here pls' // data being changed on the fly.
+    };
+    
+    hello.repaint(); // repaint template.
+    
+  },5000);
 ````

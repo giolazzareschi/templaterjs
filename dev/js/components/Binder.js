@@ -26,13 +26,15 @@ var Binder = Base.extend({
 
 		this.ends = {};
 
+		this.hasHash = false;
+
 		this.templater = args.templater;
 
 		if( args && args.template_data )
 			this.template_data = args.template_data;
 
 		if( args && args.dom )
-			this.dom = args.dom;		
+			this.dom = args.dom;
 
 		this.template_memo = {
 			'$$item__' : this.cloneObject( this.template_data )
@@ -49,7 +51,7 @@ var Binder = Base.extend({
 	},
 
 	cloneObject : function( obj ){
-	    if (obj === null || typeof obj !== 'object')
+	    if (obj === null || typeof obj !== 'object' || obj.template_data !== undefined)
 	        return obj;
 	 
 	    var temp = obj.constructor();
@@ -74,8 +76,9 @@ var Binder = Base.extend({
 
 				this.deep( el, type, end );
 			}else{
-				this.ends[ end ] = el;
-				root[ pp ] = end;
+				this.hasHash = true;
+				this.ends[ "{{"+end+"}}" ] = el;
+				root[ pp ] = "{{"+end+"}}";
 			}
 		}
 
@@ -118,83 +121,108 @@ var Binder = Base.extend({
 
 	track : function(){
 
-		var tt = "", me = this;
+		if( this.hasHash ){
 
-		for( index in this.template_hash ){
-			var hash = this.template_hash[ index ], finds, domprops, finaldata = hash ? String(hash) : '\b';
+			var tt = "", me = this;
 
-			hash = this.template_hash[ index ];
-			if( hash === undefined ){
-				hash = this.template_hash[ 'item' ];
-				if( hash ){
-					hash = "item";
+			for( index in this.template_hash ){
+				var hash = this.template_hash[ index ], finds, domprops, finaldata = hash ? String(hash) : '\b';
 
-					if( this.templater.__index !== undefined )
-						hash = hash + '_' + this.templater.__index;
+				hash = this.template_hash[ index ];
+				if( hash === undefined ){
+					hash = this.template_hash[ 'item' ];
+					if( hash ){
+						hash = "item";
+
+						if( this.templater.__index !== undefined )
+							hash = hash + '_' + this.templater.__index;
+					}
+				};
+				
+				if( this.dom ){
+					finds = findAndReplaceDOMText( this.dom , {
+						find : index,
+						replace : finaldata
+					});
 				}
-			};
-			
-			if( this.dom ){
-				finds = findAndReplaceDOMText( this.dom , {
-					find : index,
-					replace : finaldata
-				});
+
+				this.findInputs( this.dom );
+
+				hdom = this.template_hdom[ index ];
+				if( hdom ){
+					this.template_hdom[ index ] = this.template_hdom[ index ].concat( finds.doms );
+				}else{
+					this.template_hdom[ index ] = finds.doms;
+				}
 			}
 
-			this.findInputs( this.dom );
-
-			hdom = this.template_hdom[ index ];
-			if( hdom ){
-				this.template_hdom[ index ] = this.template_hdom[ index ].concat( finds.doms );
-			}else{
-				this.template_hdom[ index ] = finds.doms;
-			}
+			this.trackattr( [this.dom] );
 		}
-
-		this.trackattr( [this.dom] );
 	},
 
 	trackattr : function( root ){
-		var irrot =0, qtroot = root.length;
 
-		for( ; irrot < qtroot; irrot++ ){
-			var dom = root[ irrot ];
-
-			var tt = Array.prototype.slice.call(dom.attributes);
-			if( tt !== undefined && tt.length > 0 ){
-				var i=0 , qt = tt.length; 
-				for( ; i<qt; i++ ){
-					var d = tt[ i ], hash = this.template_hash[ d.value ];
-					if( d && hash !== undefined ){
+		var qtroot = root.length, dom, tt, children, qt, d, hash, clean, storeattr;
+		while( qtroot-- ){
+			dom = root[ qtroot ];
+			children = dom.children;
+			if(dom.attributes.length){
+				tt = Array.prototype.slice.call(dom.attributes), qt=tt.length;
+				while( qt-- ){
+					d = tt[ qt ], hash = this.template_hash[ d.value ];
+					if( typeof hash !== 'undefined' ){
 						this.template_hdom[ d.value ].push( d );
 						d.$$templatersolo = true;
 						d.$$templatersoloowner = d.ownerElement;
-						if( hash ){
+						if( hash )
 							d.value = hash;
-						}else{
+						else
 							d.ownerElement.removeAttribute( d.name );
-						}
 					}else{
-						var clean = d.name.replace(/\"/gi,"");
+						clean = d.value.replace(/\"/gi,"");
 						if( isNaN(clean.match(/\$\$item__./gi) * 1) ){
-							var storeattr = this.get_data( clean );							
-							var newattr = document.createAttribute(storeattr.index);
-							// newattr.value = storeattr.data;
-							newattr.$$templatersolo = true;
-							newattr.$$templatersoloowner = d.ownerElement;
-							newattr.value = storeattr.data;
-							if( newattr.value ) 
-								d.ownerElement.setAttributeNode(newattr);
-							d.ownerElement.removeAttribute(d.name);
-							this.template_hdom[ clean ].push(newattr);
+							storeattr = this.get_data( clean );
+							d.$$templatersolo = true;
+							d.ownerElement.setAttribute(d.name, d.value.replace(storeattr.track,storeattr.data));
+							this.template_hdom[ "{{$$item__."+storeattr.index+"}}" ].push(d);
 						}
 					}
 				}
 			}
-
-			if( dom.children.length > 0 )
-				this.trackattr( dom.children )
+			this.trackattr( children );
 		}
+	},
+
+	set_data : function( index_track, value ){
+		var el = this.get_data( index_track ), parent = this.templater.__parent;
+
+		if( parent )
+			parent.template_data.items[this.templater.__index][ el.index ] = value;
+		else
+			this.template_data[ el.index ] = value;
+	},
+
+	get_data : function( index_track ){
+		var indexes = index_track.replace(/({{\$\$item__.)|(}})/gi,'').split(' '), data, count=1, end, index, parent = this.templater.__parent, track;
+
+		indexes = indexes.filter(function(n){ return n !== "" && n !== undefined && n !== null });
+
+		end = indexes.length;
+
+		if( parent )
+			end = end - 1;
+
+		for(var i in indexes){
+			if( count++ <= end ){
+				var inx = indexes[ i ] === "$$item" ? indexes[ i ] + "__": indexes[ i ];
+				data = !data ? this.template_data[ inx ] : data[ inx ];			
+				index = indexes[ i ];
+			}
+		}
+
+		track = index_track.split(" ").filter(function(t){ return t.match(/({{\$\$item__.)|(}})/gi) }).join();
+
+		return {data :data, index : index, track : track};
 	},
 
 	findInputs : function( dom ){
@@ -246,36 +274,6 @@ var Binder = Base.extend({
 			this.mutation_hash[ hash ] = observer;
 		}
 		 
-	},
-
-	set_data : function( index_track, value ){
-		var el = this.get_data( index_track ), parent = this.templater.__parent;
-
-		if( parent )
-			parent.template_data.items[this.templater.__index][ el.index ] = value;
-		else
-			this.template_data[ el.index ] = value;
-	},
-
-	get_data : function( index_track ){
-		var indexes = index_track.split(/[\.]|\_/), data, count=1, end, index, parent = this.templater.__parent;
-
-		indexes = indexes.filter(function(n){ return n !== "" && n !== undefined && n !== null });
-
-		end = indexes.length;
-
-		if( parent )
-			end = end - 1;
-
-		for(var i in indexes){
-			if( count++ <= end ){
-				var inx = indexes[ i ] === "$$item" ? indexes[ i ] + "__": indexes[ i ];
-				data = !data ? this.template_data[ inx ] : data[ inx ];			
-				index = indexes[ i ];
-			}
-		}
-
-		return {data :data, index : index, track : index_track};
 	},
 
 	mutationinput : function( doms, hash ){

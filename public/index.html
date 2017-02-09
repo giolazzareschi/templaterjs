@@ -2,15 +2,52 @@
 <html>
   <head>
     <base href="./" />
-    <title>Lights</title>
+    <title>Templater.js</title>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, user-scalable=no">
-    <link rel="stylesheet" type="text/css" href="./build/min.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="./build/bundle.js"></script>
-    <link href="https://fonts.googleapis.com/css?family=Lato:300,400,700" rel="stylesheet">
     <link rel="shortcut icon" href="./public/favico.ico" type="image/x-icon">
   </head>
   <body>
     <div id="entry_point"></div>
+    <script type="text/javascript">
+      var data = {
+        hello: 'Hello',
+        buttonState: true,
+        child: {
+          world:['World 1','World 2','World 3','World 4']
+        }
+      };
+      
+      var World = TemplaterList.extend({
+        type: "World",
+        template: '<ul></ul>'
+      });
+      var WorldItem = Templater.extend({
+        template_data:'sample',
+        type: "WorldItem",
+        template: '<li>{{this}}</li>'
+      });
+
+      var Hello = Templater.extend({
+        type: "Hello",
+        template_data:{
+          hello: 'Hello'
+        },
+        binds: function() {
+          this.World = new World({template_data: {items: this.template_data.child.world}});
+          this.World.render(this.elements.world);
+          this.render(document.body);
+        },
+        reactions: {
+          "child.world": function(args) {
+            debugger;
+          }
+        },
+        template: '<div><span>{{hello}}</span><button disabled="{{buttonState}}">Button</button><span id="world"></span></div>'
+      });
+
+      var tt = new Hello({ template_data: data });
+    </script>
   </body>
 </html>
