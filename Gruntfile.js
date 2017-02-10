@@ -59,7 +59,10 @@ module.exports = function(grunt) {
 					'dev/js/components/Router.js',
 					'dev/js/components/Templater.js',
 					'dev/js/components/TemplaterList.js',
-					'dev/js/components/TemplaterWatcher.js'
+					'dev/js/components/TemplaterWatcher.js',
+					'dev/js/screens/comps/*.js',
+					'dev/js/screens/**/*.js',
+					'dev/js/bundle.js'
 				],
 				dest: 'public/build/bundle.js',
 			}

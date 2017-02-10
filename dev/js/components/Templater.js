@@ -38,18 +38,33 @@ var Templater = Base.extend({
 
 	templaterwachter: undefined,
 
-	changes : function(ispropagating){
-		if( JSON.stringify( this.template_data ) !== JSON.stringify( this.binder.template_main ) ){
+	changes : function(trackChanged, valueChanged, ispropagating){
+		if( this.binder.template_main ){
 			if( ispropagating )
 				this.ispropagating = ispropagating;
-			this.deepfind( this.template_data, null, "", "", this.binder.template_main );
+			if(!this.isList)
+				this.propagateReact(trackChanged, valueChanged);
+			this.update_original_simple( trackChanged, this.binder.template_main, valueChanged );
+			this.createBinder();
+		}
+	},
+
+	propagateReact: function(trackChanged, valueChanged) {
+		var
+			data = this.binder.getDataFromTrack(trackChanged);
+
+		if( data ){
+			this.react({
+				changed : trackChanged,
+				dom : this.binder.getDomFromTrack(trackChanged),
+				from : data,
+				to : valueChanged
+			});
 		}
 	},
 
 	setData : function( data ){
-		if( JSON.stringify( data ) !== JSON.stringify( this.binder.template_main ) ){
-			this.deepfind( data, null, "", "", this.binder.template_main );
-		}
+		this.deepfind( data, null, "", "", this.binder.template_main );
 	},
 
 	createWatch: function() {
@@ -69,98 +84,102 @@ var Templater = Base.extend({
 		var binder = this.binder, binder_;
 
 		for( var p in where ){
-			var original = where[ p ],
-			isarray = binder.isarray( original ),
-			main_ = main_data[ p ],
-			clean = isarray || binder.isobject( original ), 
-			track = token + p + clean,
-			clean_track = track.replace(/[_][0-9]|\_$/gi,'');
+			var 
+				original = where[ p ],
+				main_ = main_data[ p ],
+				isarray = binder.isarray( original ),
+				clean = isarray || binder.isobject( original ), 
+				track = token + p + clean,
+				clean_track = track.replace(/[_][0-9]|\_$/gi,''),
+				has_difference = JSON.stringify(original) !== JSON.stringify(main_);
 
-			if( !clean ){
+			if(has_difference){
+				if( !clean ){
 
-				if( original !== main_ ){
+					if( original !== main_ ){
 
-					var dom = this.binder.template_hdom["{{$$item__." + track + "}}"], dom_;
+						var dom = this.binder.template_hdom["{{$$item__." + track + "}}"], dom_;
 
-					if( typeof dom === "undefined" ){
-						if( !this.isList ){
-							dom = this.items[ p ];
-							if( dom && dom.__parent !== undefined )
-								dom = dom.binder.template_hdom['item_' + p];
-						}else{
-							dom = this.items[ root_label ].binder.template_hdom["{{$$item__." + p + "}}"];
-						}
-					}
-
-					if( dom !== undefined && dom.length > 0 ){
-						for(dd in dom){
-							dom_ = dom[ dd ];
-
-							if( dom_.$$templatersolo ){
-								if( dom_.$$templatersoloowner ){
-									if( original !== false )
-										dom_.$$templatersoloowner.setAttribute(dom_.name, original);
-									else
-										dom_.$$templatersoloowner.removeAttribute(dom_.name);
-								}else{
-									if( original !== false )
-										dom_.ownerElement.setAttribute(dom_.name, original);
-									else
-										dom_.ownerElement.removeAttribute(dom_.name);
-								}
+						if( typeof dom === "undefined" ){
+							if( !this.isList ){
+								dom = this.items[ p ];
+								if( dom && dom.__parent !== undefined )
+									dom = dom.binder.template_hdom['item_' + p];
 							}else{
-								if( typeof dom_.ownerElement !== 'undefined' )
-									dom_  = dom_.ownerElement;
-								
-								if( typeof dom_.value !== 'undefined' )
-									dom_.value = original;
-
-								if( typeof dom_.textContent !== 'undefined' )
-									dom_.textContent = original;
+								dom = this.items[ root_label ].binder.template_hdom["{{$$item__." + p + "}}"];
 							}
 						}
+
+						if( dom !== undefined && dom.length > 0 ){
+							for(dd in dom){
+								dom_ = dom[ dd ];
+
+								if( dom_.$$templatersolo ){
+									if( dom_.$$templatersoloowner ){
+										if( original !== false )
+											dom_.$$templatersoloowner.setAttribute(dom_.name, original);
+										else
+											dom_.$$templatersoloowner.removeAttribute(dom_.name);
+									}else{
+										if( original !== false )
+											dom_.ownerElement.setAttribute(dom_.name, original);
+										else
+											dom_.ownerElement.removeAttribute(dom_.name);
+									}
+								}else{
+									if( typeof dom_.ownerElement !== 'undefined' )
+										dom_  = dom_.ownerElement;
+									
+									if( typeof dom_.value !== 'undefined' )
+										dom_.value = original;
+
+									if( typeof dom_.textContent !== 'undefined' )
+										dom_.textContent = original;
+								}
+							}
+						}
+
+						this.update_original_simple( track, this.template_data, original );
+
+						if( !main_data.join )
+							this.react({
+								changed : track,
+								dom : dom_,
+								from : main_,
+								to : original
+							});
+							
+						var hashash = this.binder.template_hash['$$item__.' + track];
+						if( hashash !== undefined )
+							this.binder.template_hash['$$item__.' + track] = original;
+
+						if( dom ){
+							this.binder.track();
+						}
 					}
+				}else{
 
-					this.update_original_simple( track, this.template_data, original );
+					binder_ = binder_temp ? binder_temp[p] : binder.template_main[p];
 
-					if( !main_data.join )
-						this.react({
-							changed : track,
-							dom : dom_,
-							from : main_,
-							to : original
-						});
+					if( clean == "_" ){
+
+						main_ = this.isList && main_data.hasOwnProperty('items') ? main_data['items'] : main_data[ p ];
 						
-					var hashash = this.binder.template_hash['$$item__.' + track];
-					if( hashash !== undefined )
-						this.binder.template_hash['$$item__.' + track] = original;
+						if(has_difference){
 
-					if( dom ){
-						this.binder.track();
+							this.update_original_simple( clean_track, this.template_data, original );
+
+							this.react({
+								changed : clean_track,
+								dom : null,
+								from : binder.cloneObject( main_ ),
+								to : original
+							});
+						}
 					}
+
+					this.deepfind( original, binder_, track, p, main_ );
 				}
-			}else{
-
-				binder_ = binder_temp ? binder_temp[p] : binder.template_main[p];
-
-				if( clean == "_" ){
-
-					main_ = this.isList && main_data.hasOwnProperty('items') ? main_data['items'] : main_data[ p ];
-					
-					if( JSON.stringify(original) !== JSON.stringify(main_) ){
-
-						this.update_original_simple( clean_track, this.template_data, original );
-
-						this.react({
-							changed : clean_track,
-							dom : null,
-							from : binder.cloneObject( main_ ),
-							to : original
-						});
-					}
-				}
-
-				this.deepfind( original, binder_, track, p, main_ );
 			}
 		}
 
@@ -181,25 +200,42 @@ var Templater = Base.extend({
 				original_ = original_[ this.isList && original_.hasOwnProperty('items') ? 'items' : index[0] ][index[1]];
 			}else{
 				var inside = original_[ level ];
-				if( !inside.join && typeof inside === 'object' ){
-					var tt = track.split('.');					
-					for( var x = i; x > -1; x-- )
-						tt.splice(x,1);
-					return this.update_original_simple(tt.join('.'), inside, value);
-				}else{
-					if(inside.join){
-						var s=0, new_end = value.length;
-						while(inside.length)
-							inside.pop();
-						for(; s<new_end; s++)
-							inside.push(value[s]);
+				if( inside ){
+					if( !inside.join && typeof inside === 'object' ){
+						var tt = track.split('.');					
+						for( var x = i; x > -1; x-- )
+							tt.splice(x,1);
+						return this.update_original_simple(tt.join('.'), inside, value);
 					}else{
-						original_[ level ] = value; 
+						if(inside.join){
+							var s=0, new_end = value.length;
+							while(inside.length)
+								inside.pop();
+							for(; s<new_end; s++)
+								inside.push(value[s]);
+						}else{
+							original_[ level ] = value; 
+						}
 						this.binder.template_data = this.template_data;
 						this.binder.template_main = this.binder.cloneObject( this.template_data );
 					}
 				}
 			}
+		}
+	},
+
+	react : function( data ){
+		var reacto = function(){};
+
+		if( this.reactions ){
+			reacto = this.reactions[ data.changed ];
+			if( reacto )
+				reacto.apply( this, [data.dom, data.from, data.to] );
+		}
+
+		if( !this.ispropagating ){
+			this.ispropagating = false;
+			this.templaterwachter.propagate(data.changed, data.to, this.type);
 		}
 	},
 
@@ -268,7 +304,9 @@ var Templater = Base.extend({
 
 			this.binder.template_main = this.binder.cloneObject( this.template_data );	
 			
-			this.binder.track();
+			this.createBinder();
+
+			this.reactList(item, index, false);
 		}
 	},
 
@@ -305,6 +343,8 @@ var Templater = Base.extend({
 				if( x === 0 ) newitems[ 0 ] = instance;
 
 				if( index === total ) newitems[ index ] = instance;
+
+				this.reactList(instance, index, true);
 			}
 		}
 
@@ -314,7 +354,7 @@ var Templater = Base.extend({
 
 		this.binder.template_main = this.binder.cloneObject( this.template_data );
 
-		this.binder.track();
+		this.createBinder();
 	},
 
 	reindex : function( items ){
@@ -326,21 +366,6 @@ var Templater = Base.extend({
 			count++;
 		}
 		return new_items;
-	},
-
-	react : function( data ){
-		var reacto = function(){};
-
-		if( this.reactions ){
-			reacto = this.reactions[ data.changed ];
-			if( reacto )
-				reacto.apply( this, [data.dom, data.from, data.to] );
-		}
-
-		if( !this.ispropagating ){
-			this.ispropagating = false;
-			this.templaterwachter.propagate(this.type);
-		}
 	},
 
 	constructor : function( args ){
@@ -389,6 +414,8 @@ var Templater = Base.extend({
 
 			if( this.template !== '' )
 				this.update_dom();
+			else
+				this.binds();
 
 			this.setpushpop(this.template_data, "", "");
 

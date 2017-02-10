@@ -14,6 +14,12 @@ var TemplaterList = Templater.extend({
 		this.template_data.items.pop.call(this, index);
 
 		return this.template_data.items;
+	},
+
+	reactList: function(item, index, added_or_removed){
+		if( this.reactions.items ){
+			this.reactions.items.call(this, [item, index, added_or_removed]);
+		}
 	}
 
 });

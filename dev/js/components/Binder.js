@@ -225,6 +225,54 @@ var Binder = Base.extend({
 		return {data :data, index : index, track : track};
 	},
 
+	getDataFromTrack: function(track) {
+		var
+			parts = [],
+			objects = track.split('.');
+
+		for(var part in objects)
+			parts = parts.concat(objects[ part ].split('_'));
+		
+		return this.getDataFromTrackLoop(parts, this.template_main);
+	},
+
+	getDataFromTrackLoop: function(parts, value) {
+		var index = parts.shift();
+
+		if( value[index] ){	
+			if( parts.length )
+				return this.getDataFromTrackLoop(parts, value[index]);
+			else
+				return value[index];
+		}else{
+			return undefined;
+		}
+	},
+
+	getDomFromTrack: function(track) {
+		var
+			parts = [],
+			objects = track.split('.');
+
+		for(var part in objects)
+			parts = parts.concat(objects[ part ].split('_'));
+		
+		return this.getDomFromTrackLoop(parts, this.template_memo.$$item__);
+	},
+
+	getDomFromTrackLoop: function(parts, value) {
+		var index = parts.shift();
+
+		if( value[index] ){	
+			if( parts.length )
+				return this.getDomFromTrackLoop(parts, value[index]);
+			else
+				return this.template_hdom[ value[index] ];
+		}else{
+			return undefined;
+		}
+	},
+
 	findInputs : function( dom ){
 		var inputs = dom.querySelectorAll('input'), i=0, qt=inputs.length;
 		for( ;i < qt; i++ ){
