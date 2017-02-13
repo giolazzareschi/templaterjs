@@ -3,58 +3,43 @@ var SessionManager = Templater.extend({
 	type: 'SessionManager',
 
 	binds: function() {
-		this.Hello = new Hello({ template_data: this.template_data });
-
-		this.Hello.render(this.dom);
+		GlobalContext.SessionManager = this;
 	},
 
-	reactions: {
-		"child.world": function(args) {
-			
-		},
-		"hello": function(dom, from, to) {
-			
-		}
+	isAuthenticated: function() {
+		if( this.hasAuthenticationToken() )
+			return true;
+
+		return false;
+	},
+
+	hasAuthenticationToken: function() {
+		return GlobalContext.hasAuthenticationToken();
+	},
+
+	clearAuthenticationToken: function() {
+		GlobalContext.clearAuthenticationToken();
+	},
+
+	preserveAuthenticationToken: function(auth_token) {
+		GlobalContext.preserveAuthenticationToken(auth_token);
+	},
+
+	logout: function() {
+		this.clearAuthenticationToken();
+		this.renderLoginScreen();
+	},
+
+	renderLoginScreen: function() {
+		GlobalContext.navigate('login');
+	},
+
+	renderView: function( viewClass ) {
+		viewClass.render(this.dom);
 	},
 
 	template: ''+
-		'<session-manager>'+
+		'<session-manager class="fullsized">'+
 		'</session-manager>'
 
-});
-
-var World = TemplaterList.extend({
-	type: "World",
-	template: '<ul></ul>',
-	reactions: {
-		items: function() {
-			
-		}
-	}
-});
-var WorldItem = Templater.extend({
-	template_data:'sample',
-	type: "WorldItem",
-	template: '<li>{{this}}</li>'
-});
-
-var Hello = Templater.extend({
-	type: "Hello",
-	template_data:{
-		hello: 'Hello'
-	},
-	binds: function() {
-		this.World = new World({template_data: {items: this.template_data.child.world}});
-		this.World.render(this.elements.world);
-		this.render(document.body);
-	},
-	reactions: {
-		"child.world": function(dom, from, to) {
-			
-		},
-		"hello": function(dom, from, to) {
-			
-		}
-	},
-	template: '<hello><span>{{hello}}</span><button disabled="{{buttonState}}">Button</button><span id="world"></span></hello>'
 });

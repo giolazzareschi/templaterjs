@@ -38,33 +38,20 @@ var Templater = Base.extend({
 
 	templaterwachter: undefined,
 
-	changes : function(trackChanged, valueChanged, ispropagating){
+	changes : function(trackChanged, valueChanged, ispropagating, originalSetData){
 		if( this.binder.template_main ){
+
 			if( ispropagating )
 				this.ispropagating = ispropagating;
-			if(!this.isList)
-				this.propagateReact(trackChanged, valueChanged);
-			this.update_original_simple( trackChanged, this.binder.template_main, valueChanged );
-			this.createBinder();
-		}
-	},
-
-	propagateReact: function(trackChanged, valueChanged) {
-		var
-			data = this.binder.getDataFromTrack(trackChanged);
-
-		if( data ){
-			this.react({
-				changed : trackChanged,
-				dom : this.binder.getDomFromTrack(trackChanged),
-				from : data,
-				to : valueChanged
-			});
+			
+			this.setData( originalSetData );
+			
+			this.ispropagating = false;
 		}
 	},
 
 	setData : function( data ){
-		this.deepfind( data, null, "", "", this.binder.template_main );
+		this.deepfind( data, null, "", "", this.binder.template_main, data );
 	},
 
 	createWatch: function() {
@@ -77,7 +64,7 @@ var Templater = Base.extend({
 		this.templaterwachter.register(this);
 	},
 
-	deepfind: function( where, binder_temp, token, root_label, main_data ){
+	deepfind: function( where, binder_temp, token, root_label, main_data, originalSetData ){
 
 		if( token === undefined ) token = "";
 
@@ -98,7 +85,9 @@ var Templater = Base.extend({
 
 					if( original !== main_ ){
 
-						var dom = this.binder.template_hdom["{{$$item__." + track + "}}"], dom_;
+						var 
+							dom_,
+							dom = this.binder.template_hdom["{{$$item__." + track + "}}"];
 
 						if( typeof dom === "undefined" ){
 							if( !this.isList ){
@@ -106,7 +95,9 @@ var Templater = Base.extend({
 								if( dom && dom.__parent !== undefined )
 									dom = dom.binder.template_hdom['item_' + p];
 							}else{
-								dom = this.items[ root_label ].binder.template_hdom["{{$$item__." + p + "}}"];
+								dom = this.items[ root_label ];
+								if( dom )
+									dom = dom.binder.template_hdom["{{$$item__." + p + "}}"];
 							}
 						}
 
@@ -146,7 +137,8 @@ var Templater = Base.extend({
 								changed : track,
 								dom : dom_,
 								from : main_,
-								to : original
+								to : original,
+								originalSetData: originalSetData
 							});
 							
 						var hashash = this.binder.template_hash['$$item__.' + track];
@@ -173,8 +165,11 @@ var Templater = Base.extend({
 								changed : clean_track,
 								dom : null,
 								from : binder.cloneObject( main_ ),
-								to : original
+								to : original,
+								originalSetData: originalSetData
 							});
+
+							continue;
 						}
 					}
 
@@ -182,6 +177,8 @@ var Templater = Base.extend({
 				}
 			}
 		}
+		
+		this.binder.template_main = this.binder.cloneObject( this.template_data );
 
 		return {};
 	},
@@ -200,24 +197,24 @@ var Templater = Base.extend({
 				original_ = original_[ this.isList && original_.hasOwnProperty('items') ? 'items' : index[0] ][index[1]];
 			}else{
 				var inside = original_[ level ];
-				if( inside ){
+				if( typeof inside !== 'undefined' ){
 					if( !inside.join && typeof inside === 'object' ){
 						var tt = track.split('.');					
 						for( var x = i; x > -1; x-- )
 							tt.splice(x,1);
 						return this.update_original_simple(tt.join('.'), inside, value);
 					}else{
-						if(inside.join){
-							var s=0, new_end = value.length;
-							while(inside.length)
-								inside.pop();
-							for(; s<new_end; s++)
-								inside.push(value[s]);
-						}else{
-							original_[ level ] = value; 
+						if( !this.ispropagating ){
+							if(inside.join){
+								var s=0, new_end = value.length;
+								while(inside.length)
+									inside._pop_();
+								for(; s<new_end; s++)
+									inside._push_(value[s]);
+							}
 						}
-						this.binder.template_data = this.template_data;
-						this.binder.template_main = this.binder.cloneObject( this.template_data );
+						if(!inside.join)
+							original_[ level ] = value; 
 					}
 				}
 			}
@@ -235,7 +232,7 @@ var Templater = Base.extend({
 
 		if( !this.ispropagating ){
 			this.ispropagating = false;
-			this.templaterwachter.propagate(data.changed, data.to, this.type);
+			this.templaterwachter.propagate(data.changed, data.to, this.type, data.originalSetData);
 		}
 	},
 
@@ -254,11 +251,11 @@ var Templater = Base.extend({
 				if( typeof original === "function ") continue;
 
 				if( clean && isarray ){
-					if( original.$$pushpop === undefined ){
-						original.$$pushpop = +new Date;
-						original.pop = this.pop_.bind(this);
-						original.push = this.push_.bind(this);
-					}
+					// if( original.$$pushpop === undefined ){
+					// 	original.$$pushpop = +new Date;
+					original._pop_ = this.pop_.bind(this);
+					original._push_ = this.push_.bind(this);
+					// }
 				}
 
 				if( clean === "" && isarray === "" ) break;
@@ -302,9 +299,7 @@ var Templater = Base.extend({
 
 			this.items = this.reindex( this.items );
 
-			this.binder.template_main = this.binder.cloneObject( this.template_data );	
-			
-			this.createBinder();
+			this.binder.template_main = this.binder.cloneObject( this.template_data );
 
 			this.reactList(item, index, false);
 		}
@@ -353,8 +348,6 @@ var Templater = Base.extend({
 		this.items = this.reindex( this.items );
 
 		this.binder.template_main = this.binder.cloneObject( this.template_data );
-
-		this.createBinder();
 	},
 
 	reindex : function( items ){
@@ -495,7 +488,11 @@ var Templater = Base.extend({
 		if( !this.require )
 			this.binds();
 
-		for( p in this.events )
+		this.registerEvents();
+	},
+
+	registerEvents: function() {
+		for( var p in this.events )
 			this.register_events(p, this.events[p]);
 	},
 
@@ -548,7 +545,7 @@ var Templater = Base.extend({
 			if( selector ){
 				var dd = dom.querySelectorAll( selector );
 				for(var i=0, qt=dd.length; i<qt; i++)
-					dd[ i ].addEventListener(event, fn.bind(this), !1);
+					dd[ i ].addEventListener(event, fn.bind(this, i), !1);
 
 			}else{
 				if( event ){
@@ -561,7 +558,7 @@ var Templater = Base.extend({
 		};
 	},
 
-	render : function( receiver ){
+	render: function( receiver ){
 		this.receiver = receiver;
 		receiver.innerHTML = "";
 		receiver.appendChild( this.dom );

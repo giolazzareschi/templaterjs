@@ -15,6 +15,9 @@ body
 	color: #333
 	position: relative
 
+	@media screen and (max-width: 800px)
+		font-size: 65%
+
 object
 	display: none
 
@@ -28,13 +31,8 @@ a
 		color: blue
 	&:active
 		color: #05456b
-
-input
-	padding: 1em
-	border: 1px solid #ccc
-	outline: none
-
-#entry_point
+		
+.entry_point
 	position: absolute
 	top: 0px
 	left: 0px
@@ -46,40 +44,29 @@ input
 	right: 0px
 	bottom: 0px
 	margin: auto
-	will-change: width
 	displayflex: flex
-	displayflexdirection: column
+	flexdirection: column
 	overflow-y: auto
+	background-color #f2f2f2
 
 	.main-header
-		border-bottom: 1px solid #dedede
-		flex: 0 0 80px
-		box-shadow: 0 -2px 7px -2px #000
+		background-color #fff
+		flex(0 0 50px)
 		z-index: 2
+		displayflex()
+		flexdirection(row)
 		position: relative
 		
-		.roundedbutton
-			top: 80px
-			font-size: 2.5em
-		
-		ul
-			displayflex: flex
-			li
-				flex: 0 0 40px
-				padding: 23px 0px 22px
-				text-align: center
-
-				&.main-button
-					line-height: 15px
-					font-size: 20px
-					color: #888
-					flex: 0 0 60px
-				
-				&.logo
-					flex: 1 0 auto
-					padding: 0px
-					line-height: 65px
-					text-align: left
+		.menu-wrap
+			displayflex()
+			justifycontent(center)
+			alignitems(center)
+			flex(0 0 auto)
+			padding 0 15px
+			
+			&.selected
+				background-color $grey-light
+				color $grey-dark
 
 	.main-footer
 		flex: 0 0 0px
@@ -88,7 +75,7 @@ input
 	width: 1024px
 	margin: 0px auto
 	
-.hide
+.hide, *[hide]
 	display: none
 	
 .fleft
@@ -100,11 +87,21 @@ input
 .fclear
 	clear:both
 	
+.nopadding
+	padding: 0 !important
+
 .warn
 	font-size: 20px
 	
 	&.success
 		color: #45d
+
+.flex-box
+	displayflex()
+	flexdirection(row)
+
+.flex-column
+	flexdirection(column)
 
 .btn-basic
 	padding: .7em 1em
@@ -119,7 +116,7 @@ input
 
 div[appmaincenter]
 	display: flex
-	displayflexdirection: column
+	flexdirection: column
 	height: 100%
 
 	div[appmainheader], div[appmainfooter]

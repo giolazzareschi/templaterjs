@@ -1,0 +1,64 @@
+.new-order
+	height 100%
+	min-width 520px
+	
+	@media screen and (max-width: 360px)
+		min-width 435px
+
+	#phone_area
+		position relative
+		
+		.loading-cellphone
+			position absolute
+			height 100%
+			font-size 2em
+			right 0
+			top 0
+			background-color $blue-regular
+			color $white
+			padding 7px
+			font-size 1.65em
+	
+	h4
+		font-size: 1.15em
+	
+	.form
+		padding 0
+		min-height 1024px
+		background-color $grey-light
+		flex(0 0 65%)
+		
+		.form-wrap
+			flex(0 0 auto)
+			padding 5%
+		
+		#pizza_elements
+			displayflex()
+			flex(1 0 auto)
+			height 0
+
+	.draft-area-wrap
+		background-color $grey-very-light2
+		flex(0 0 35%)
+		
+	.buttons-type-order
+		button
+			margin-right: 5px
+			flex(1 0 0)
+			
+			&.selected
+				background-color $green-regular
+			
+			&:last-child
+				margin 0
+				
+	.area-complemento
+		@media screen and (max-width: 1280px)
+			flex(1 0 25%)
+			
+		#numero_endereco
+			width 25%
+			margin-right 10px
+		
+		#complemento_endereco
+			width 75%

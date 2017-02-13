@@ -23,12 +23,18 @@ var Requester = Base.extend({
 
 	_onSuccessGET : function(success, fails, response){
 
-		response[this.response]().then(success.bind(this.owner), fails.bind(this.owner));
+		if(response.status === 401)
+			GlobalContext.restartApp();
+		else
+			response[this.response]().then(success.bind(this.owner), fails.bind(this.owner));
 	},
 
 	_onSuccessPOST : function(success, fails, response){
 
-		response[this.response]().then(success.bind(this.owner), fails.bind(this.owner));
+		if(response.status === 401)
+			GlobalContext.restartApp();
+		else
+			response[this.response]().then(success.bind(this.owner), fails.bind(this.owner));
 	},
 
 	_onError : function(response){
@@ -52,14 +58,14 @@ var Requester = Base.extend({
 			'Accept': 'application/json'
 		};
 
-		var auth_token = GlobalContext.getData('auth_token');
+		var auth_token = GlobalContext.getAuthorizationToken();
 		if( auth_token )
-			hds['X-User-Token'] = auth_token;
+			hds['Authorization'] = auth_token;
 
 		this.data['headers'] = new Headers( hds );
 
 		delete this.data['body'];
-
+		
 		return this.fetch_get(success, fails);
 	},
 
@@ -79,9 +85,9 @@ var Requester = Base.extend({
 			'Accept': 'application/json'
 		};
 
-		var auth_token = GlobalContext.getData('auth_token');
+		var auth_token = GlobalContext.getAuthorizationToken();
 		if( auth_token )
-			hds['X-User-Token'] = auth_token;
+			hds['Authorization'] = auth_token;
 
 		this.data['headers'] = new Headers( hds );
 
@@ -130,6 +136,8 @@ var Requester = Base.extend({
 					this.data['url'] = this.url;
 			}
 		}
+
+		this.base.call(this);
 	},
 
 	fetch_get : function(success, fails){

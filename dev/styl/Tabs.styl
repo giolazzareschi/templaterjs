@@ -1,0 +1,60 @@
+.tabs-wrapper
+	height 100%
+	displayflex()
+	flex(1 0 auto)
+	flexdirection(column)
+	
+	.tab-header
+		displayflex()
+		flex(0 0 auto)
+		border-bottom 1px solid $blue-neon
+		z-index 1
+		
+		.tab-header-item
+			flex(0 0 auto)
+			padding 20px
+			color $white
+			background-color $grey-medium
+			border none
+			border-bottom 1px solid $blue-neon
+			color $grey-light
+			position relative
+			top 1px
+			
+			@media screen and (max-width: 800px)
+				padding 14px
+			
+			&.selected
+				background-color $blue-regular
+				border 1px solid $blue-neon
+				border-bottom none
+				color $white
+				
+	.tab-container
+		position relative
+		display flex
+		overflow auto		
+		
+	.tab-body
+		flex(1 0 auto)
+		background-color $white
+		position relative
+		z-index 0
+		height 100%
+		width 100%
+		
+		.tab-body-item
+			display none
+			position relative
+			left 0
+			top 0
+			width 100%
+			height 100%
+			overflow auto
+		
+			&.selected
+				display block
+				
+			li
+				width 100%
+				white-space pre-wrap

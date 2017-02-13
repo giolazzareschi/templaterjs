@@ -8,14 +8,14 @@ var TemplaterWatcher = Base.extend({
 		this.map.push(ref);
 	},
 
-	propagate: function(trackChanged, valueChanged, typeCaller) {
+	propagate: function(trackChanged, valueChanged, typeCaller, originalSetData) {
 		var
 			total = this.map.length;
 
 		while( total-- ){
 			var templater = this.map[ total ];
 			if( templater.type !== typeCaller )
-				this.map[ total ].changes(trackChanged, valueChanged, true);
+				this.map[ total ].changes(trackChanged, valueChanged, true, originalSetData);
 		}
 	}
 

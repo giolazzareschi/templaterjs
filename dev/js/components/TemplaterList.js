@@ -17,7 +17,7 @@ var TemplaterList = Templater.extend({
 	},
 
 	reactList: function(item, index, added_or_removed){
-		if( this.reactions.items ){
+		if( this.reactions && this.reactions.items ){
 			this.reactions.items.call(this, [item, index, added_or_removed]);
 		}
 	}

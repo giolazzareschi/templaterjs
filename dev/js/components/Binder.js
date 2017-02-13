@@ -193,13 +193,22 @@ var Binder = Base.extend({
 		}
 	},
 
-	set_data : function( index_track, value ){
+	set_data : function( index_track, value, old_value, dom ){
 		var el = this.get_data( index_track ), parent = this.templater.__parent;
 
 		if( parent )
 			parent.template_data.items[this.templater.__index][ el.index ] = value;
 		else
 			this.template_data[ el.index ] = value;
+
+		this.template_main = this.cloneObject( this.template_data );
+
+		this.templater.react({
+			changed: index_track.replace(/({{\$\$item__.)|(}})/gi,''),
+			dom: dom,
+			from: old_value,
+			to: value
+		});
 	},
 
 	get_data : function( index_track ){
@@ -274,7 +283,11 @@ var Binder = Base.extend({
 	},
 
 	findInputs : function( dom ){
-		var inputs = dom.querySelectorAll('input'), i=0, qt=inputs.length;
+		var 
+			i=0, 
+			inputs = dom.nodeName.toUpperCase() === 'INPUT' ? [dom ] : dom.querySelectorAll('input'), 
+			qt=inputs.length;
+
 		for( ;i < qt; i++ ){
 			var input = inputs[ i ] , hash = input.value, label = hash.split("|")[0],
 			data, hdom;
@@ -330,10 +343,16 @@ var Binder = Base.extend({
 		for( ; i < qt ; i++ ){
 			var dom = doms[ i ];
 
-			dom.addEventListener('change', function( e ){
+			dom.addEventListener('keydown', function( e ){
 				var el = e.srcElement || e.target
 
-				me.set_data( el.$$templater, el.value );
+				el.__olderValue = el.value;
+			});
+
+			dom.addEventListener('keyup', function( e ){
+				var el = e.srcElement || e.target
+
+				me.set_data( el.$$templater, el.value, el.__olderValue, el );
 			});
 		}
 		 

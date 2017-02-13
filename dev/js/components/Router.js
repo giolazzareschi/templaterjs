@@ -2,57 +2,79 @@ var Router = Base.extend({
 
 	routes : {},
 
+	before_action : undefined,
+
 	constructor : function(){
 
 		window.addEventListener('hashchange', this.change.bind(this));
 
-		this.base();
+		this.base.call(this, arguments);
 	},
 
-	before_action : undefined,
+	setLoginRoute: function(login_route) {
+		this.login_route = login_route || 'login';
+	},
 
-	register : function( data ){
+	register : function( route, callback ){
 
-		this.routes[ data.route ] = data.callback;
+		this.routes[ route ] = callback;
 	},
 
 	href : function( route ){
 
-		if( this.getCurrentRoute() === route )
+		var current_route = this.getCurrentRoute();
+
+		if( current_route === route )
 			this.change();
 		else
 			window.location.hash = route;
 	},
 
-	getCurrentRoute : function(){
+	navigateToLastRoute: function() {
+		var
+			lastRoute = this.getLastAccessedRoute() || '';
 
-		return window.location.hash.replace('#','');
+		this.href(lastRoute);
 	},
 
-	validate : function(){
-		var rule = true;
+	setLastAccessedRoute: function(route) {
+		GlobalContext.setStorageData('lastAccessedRoute', route);
+	},
 
-		if( this.before_action )
-			rule = this.before_action.rule && this.before_action.rule();
+	getLastAccessedRoute: function() {
+		return GlobalContext.getStorageData('lastAccessedRoute');
+	},
 
-		return rule;
+	clearLastAccessedRoute: function() {
+		return GlobalContext.removeStorageData('lastAccessedRoute');
+	},
+
+	getCurrentRoute : function(){
+		return window.location.hash.replace('#','');
 	},
 
 	entry : false,
 
 	change : function(){
 
-		var route = this.getCurrentRoute();
+		var 
+			last = this.getLastAccessedRoute(),
+			route = this.getCurrentRoute(),
+			body = this.routes[ route ];
 
-		if( !this.validate() ){
-			
-			this.routes[ this.before_action.fails ]();
+		this.setLastAccessedRoute(route);
+
+		if(GlobalContext.hasAuthenticationToken()){
+			if( body && route !== this.login_route )
+				body();
+			else
+				this.href('');
 		}else{
-
-			if( route !== this.before_action.fails )
-				this.routes[ route ]();
+			if( route === this.login_route )
+				body();
+			else
+				this.href(this.login_route);
 		}
-
 	}
 
 });
