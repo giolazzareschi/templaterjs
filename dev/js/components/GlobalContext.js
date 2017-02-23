@@ -2,7 +2,9 @@ var GlobalContext = Templater.extend({
 
 	type: 'GlobalContext',
 
-	authenticationHash: 'igomanagerauth',
+	useAuthToken: false,
+
+	authenticationHash: 'managerauthtoken',
 
 	binds: function() {
 		this.StorageManager = new StorageManager();

@@ -8,52 +8,50 @@ var Ajax = Base.extend({
 
 	headers : {},
 
-	request : function( resolve, reject ){
-		this.xhr.open("GET", this.url, true);
-		this.xhr.onreadystatechange = this.ready.bind( this, resolve, reject );
-		for( header in this.headers )
-			this.xhr.setRequestHeader(header, this.headers[ header ]);
-		this.xhr.send();
-	},
-
-	get : function(){},
-
-	owner : undefined,
+	data: null,
 
 	constructor : function( args ){
 		if( args && args.url !== undefined ){
-			
-			this.url = args.url;
 
 			this.xhr = new XMLHttpRequest();
 
-			if( args.owner !== undefined )
-				this.owner = args.owner;
-
-			if( args.responseType !== undefined )
-				this.responseType = args.responseType;
-
-			if( args.get !== undefined )
-				this.get = args.get.bind( this.owner );
-
-			if( args.error !== undefined )
-				this.error = args.error.bind( this.owner );
-
-			if( args.headers !== undefined )
-				this.headers = args.headers;
-
-			this.Promise = new Promise(this.request.bind(this));
+			if( args.url !== undefined )
+				this.url = args.url;
 		}
 	},
 
-	ready : function( resolve, reject ){
-		if( this.xhr.status === 200 && this.xhr.readyState === 4 ){
-			var resp = this.xhr.responseText;
+	request : function( config ){
 
-			if( this.responseType === 'json' )
-				resp = JSON.parse( this.xhr.responseText );
+		var
+			error = config.error ? config.error : function() {},
+			success = config.success ? config.success : function() {};
 
-			resolve( resp );
+		this.xhr.open(config.method || 'GET', config.url || this.url, true);
+		this.xhr.onreadystatechange = this.ready.bind( this, success, error );
+		if(config.headers !== false){
+			this.xhr.setRequestHeader('Accept', 'application/json');
+			this.xhr.setRequestHeader('Content-Type', 'application/json');
+			this.xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+			for( header in config.headers )
+				this.xhr.setRequestHeader(header, config.headers[ header ]);
+		}
+		this.xhr.send(config.data);
+	},
+
+	ready : function( success, error ){
+		if( this.xhr.readyState === 4 ){
+			if( this.xhr.status === 200 ){
+				var resp = this.xhr.responseText;
+
+				if( this.responseType === 'json' )
+					resp = JSON.parse( this.xhr.responseText );
+
+				success( resp );
+			}else{
+				if(this.xhr.status === 401)
+					GlobalContext.restartApp();
+				error(this.xhr.responseText, this.xhr.status, this.xhr.readyState);
+			}
 		}
 	}
 

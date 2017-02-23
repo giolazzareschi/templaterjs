@@ -398,11 +398,10 @@ var Templater = Base.extend({
 
 			if( args && args.model !== undefined ){
 				args.model.owner = this;
-				this.model = new Requester( args.model ); 
+				this.model = new RequesterAjax( args.model ); 
 			}else if( this.model !== undefined ){
 				this.model.owner = this;
-				var temp = this.model;
-				this.model = new Requester( temp );
+				this.model = new RequesterAjax( this.model );
 			}
 
 			if( this.template !== '' )
@@ -511,7 +510,6 @@ var Templater = Base.extend({
 
 		if( typeof this.child_template !== 'undefined' )
 			tpl.modalcontent = Handlebars.compile(this.child_template.modalcontent)(tpl);
-
 		
 		return Handlebars.compile( this.template )( tpl );
 	},

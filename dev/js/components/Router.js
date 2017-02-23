@@ -64,17 +64,13 @@ var Router = Base.extend({
 
 		this.setLastAccessedRoute(route);
 
-		if(GlobalContext.hasAuthenticationToken()){
+		if(GlobalContext.useAuthToken && GlobalContext.hasAuthenticationToken()){
 			if( body && route !== this.login_route )
 				body();
 			else
 				this.href('');
 		}else{
-			if( route === this.login_route )
-				body();
-			else
-				this.href(this.login_route);
+			body();
 		}
 	}
-
 });
