@@ -1,33 +1,48 @@
-'use strict';
+;(function(){
+	'use strict';
 
-if (document.addEventListener) 
-	document.addEventListener("DOMContentLoaded", start_app, false);
+	if (document.addEventListener) 
+		document.addEventListener("DOMContentLoaded", start_app, false);
 
-var	
-	data,
-	GlobalContext = new GlobalContext(),
-	Routes = {
-		'': function() {
 
-		},
-		'login': function() {
+	function start_app(){
+		
+		GlobalContext.Router.setLoginRoute('login');
+		for(var route in Routes)
+			GlobalContext.Router.register(route, Routes[route]);
 
-		},
-		'logout': function() {
-			GlobalContext.restartApp();
-		}
+		(new Templater({
+			binds : function(){
+
+				AppBundle = new GlobalContext.Export.App();
+
+				AppBundle.render(document.body);
+
+				GlobalContext.navigate('');
+			}
+		}));
 	};
 
-function start_app(){
-	
-	GlobalContext.Router.setLoginRoute('login');
-	for(var route in Routes)
-		GlobalContext.Router.register(route, Routes[route]);
+	var	
+		data,
+		AppBundle,
+		Routes = {
+			'': function() {
+				var HomeScreen = new GlobalContext.Export.HomeScreen();
 
-	(new Templater({
-		binds : function(){
-			
-			GlobalContext.navigateToLastRoute();
-		}
-	}));
-};
+				AppBundle.renderPage(HomeScreen);
+			},
+			'customers': function() {
+
+				var Customers = new GlobalContext.Export.Customers();
+
+				AppBundle.renderPage(Customers);
+			},
+			'login': function() {
+
+			},
+			'logout': function() {
+				GlobalContext.restartApp();
+			}
+		};
+})();

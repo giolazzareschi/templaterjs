@@ -70,7 +70,10 @@ var Router = Base.extend({
 			else
 				this.href('');
 		}else{
-			body();
+			if(body)
+				body();
+			else
+				this.href('');
 		}
 	}
 });

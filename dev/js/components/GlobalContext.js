@@ -6,6 +6,8 @@ var GlobalContext = Templater.extend({
 
 	authenticationHash: 'managerauthtoken',
 
+	Export: {},
+
 	binds: function() {
 		this.StorageManager = new StorageManager();
 		this.Router = new Router();
@@ -51,5 +53,6 @@ var GlobalContext = Templater.extend({
 	preserveAuthenticationToken: function(auth_token) {
 		this.StorageManager.set(this.authenticationHash, auth_token);
 	}
-
 });
+
+GlobalContext = new GlobalContext();
