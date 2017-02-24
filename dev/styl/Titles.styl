@@ -1,0 +1,45 @@
+.page-title
+	displayflex()
+	flexdirection(column)
+	alignitems(center)
+	justifycontent(center)
+	padding 20px
+	font-size 5em
+	font-weight 200
+	color #555
+
+	@media screen and (max-width: 480px)
+		padding-top 1em
+		font-size 3em
+
+.page-subtitle
+	displayflex()
+	flexdirection(column)
+	alignitems(center)
+	justifycontent(center)
+	padding 20px
+	font-size 2em
+	font-weight 600
+	color #888
+	
+.page-description
+	displayflex()
+	flexdirection(column)
+	alignitems(center)
+	justifycontent(center)
+	padding 20px
+	font-size 1.25em
+	line-height 2em
+	font-weight 400
+	color #222
+	width 65%
+	margin 0 auto
+	
+	&.home-description
+		padding-top 8em
+		text-align center
+	
+	@media screen and (max-width: 480px)
+		font-size 1em
+		width 90%
+	

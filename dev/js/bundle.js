@@ -32,11 +32,23 @@
 
 				AppBundle.renderPage(HomeScreen);
 			},
-			'customers': function() {
+			'learn': function() {
 
-				var Customers = new GlobalContext.Export.Customers();
+				var LearnPage = new GlobalContext.Export.LearnPage();
 
-				AppBundle.renderPage(Customers);
+				AppBundle.renderPage(LearnPage);
+			},
+			'use': function() {
+
+				var UsePage = new GlobalContext.Export.UsePage();
+
+				AppBundle.renderPage(UsePage);
+			},
+			'hello-world': function() {
+
+				var HelloWorldPage = new GlobalContext.Export.HelloWorldPage();
+
+				AppBundle.renderPage(HelloWorldPage);
 			},
 			'login': function() {
 
