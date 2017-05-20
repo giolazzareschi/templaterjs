@@ -14,20 +14,23 @@ var RequesterAjax = Base.extend({
 				this.owner = config.owner;
 
 			if( config.url !== undefined ){
-				this.url = config.url;
-				if( typeof this.url === typeof function(){} )
-					this['url'] = this.url.call( this.owner );
-				else
-					this['url'] = this.url;
+				if( typeof config.url === 'function' ){
+					this.url = config.url.call( this.owner );
+				}
+				else{
+					this['url'] = config.url;
+				}
 			}
 
 			if( config.header !== undefined ){
-				this['headers'] = config.headers;
+				this.headers = config.headers;
 			}
 		}
 
 		this.Ajax = new Ajax({
-			url: this.url
+			url: this.url,
+			headers: this.headers,
+			owner: this.owner
 		});
 
 		this.base.call(this, config);
@@ -41,6 +44,10 @@ var RequesterAjax = Base.extend({
 			    return encodeURIComponent(k) + '=' + encodeURIComponent(payload[k])
 			}).join('&');
 
+			if( typeof this.url === 'function' ){
+				this.url = this.url.call( this.owner || this.owner ); 
+			}
+
 			url = this.url + '?' + params;
 		}
 		
@@ -52,7 +59,8 @@ var RequesterAjax = Base.extend({
 				data: null,
 				success: success.bind(this.owner),
 				error: error.bind(this.owner),
-				headers: this.headers
+				headers: this.headers,
+				owner: this.owner
 			};
 
 		this.__request__(config);
@@ -68,7 +76,8 @@ var RequesterAjax = Base.extend({
 				data: payload !== "{}" ? payload : null,
 				success: success.bind(this.owner),
 				error: error.bind(this.owner),
-				headers: this.headers
+				headers: this.headers,
+				owner: this.owner
 			};
 
 		this.__request__(config);
@@ -85,7 +94,8 @@ var RequesterAjax = Base.extend({
 				data: payload !== "{}" ? payload : null,
 				success: success.bind(this.owner),
 				error: error.bind(this.owner),
-				headers: this.headers
+				headers: this.headers,
+				owner: this.owner
 			};
 
 		this.__request__(config);
@@ -101,7 +111,8 @@ var RequesterAjax = Base.extend({
 				data: payload !== "{}" ? payload : null,
 				success: success.bind(this.owner),
 				error: error.bind(this.owner),
-				headers: this.headers
+				headers: this.headers,
+				owner: this.owner
 			};
 
 		this.__request__(config);

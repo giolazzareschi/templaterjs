@@ -38,7 +38,9 @@ var Templater = Base.extend({
 
 	templaterwachter: undefined,
 
-	changes : function(trackChanged, valueChanged, ispropagating, originalSetData){
+	Router: new Router(),
+
+	changes : function(trackChanged, valueChanged, ispropagating, originalSetData, indexTemplateItem){
 		if( this.binder.template_main ){
 
 			if( ispropagating )
@@ -232,7 +234,8 @@ var Templater = Base.extend({
 
 		if( !this.ispropagating ){
 			this.ispropagating = false;
-			this.templaterwachter.propagate(data.changed, data.to, this.type, data.originalSetData);
+			Templater.propagatingTemplateData = this.template_data;
+			this.templaterwachter.propagate(data.changed, data.to, this.type, data.originalSetData, this.__index);
 		}
 	},
 
@@ -369,6 +372,8 @@ var Templater = Base.extend({
 
 			if( this.template_data === undefined )
 				this.template_data = {};
+			else
+				this.template_data = Templater.cloneObject(this.template_data);
 
 			if( args && args.template !== undefined && args.template !== '' )
 				this.template = args.template;
@@ -609,6 +614,32 @@ var Templater = Base.extend({
 			this.dom.parentNode.removeChild( this.dom );
 		
 		delete this;
+	},
+
+	cloneData : function( obj ){
+	    if (obj === null || typeof obj !== 'object' || obj.template_data !== undefined)
+	        return obj;
+	 
+	    var temp = obj.constructor();
+	    for (var key in obj)
+	        temp[key] = this.cloneData(obj[key]);
+	 
+	    return temp;		
 	}
 
-},{ deeping_ : false });
+},{ 
+	deeping_ : false,
+
+	propagatingTemplateData: {},
+
+	cloneObject : function(obj){
+		if (obj === null || typeof obj !== 'object' || obj.template_data !== undefined)
+			return obj;
+
+		var temp = obj.constructor();
+		for (var key in obj)
+			temp[key] = this.cloneObject(obj[key]);
+
+		return temp;		
+	},
+});

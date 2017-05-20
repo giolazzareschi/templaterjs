@@ -5,7 +5,7 @@ var
 	http        = require('http'),
     fs          = require('fs'),
 	server      = express(),
-	port        = 3000;
+	port        = 9100;
 
 server.use(compression());
 

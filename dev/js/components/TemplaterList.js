@@ -2,6 +2,15 @@ var TemplaterList = Templater.extend({
 
 	isList : true,
 
+	size: function() {
+		var length = 0;
+
+		for(var item in this.items)
+			length++
+
+		return length;
+	},
+
 	add : function( data, index ){
 
 		this.template_data.items.push.call(this, data, index);

@@ -17,6 +17,9 @@ var Ajax = Base.extend({
 
 			if( args.url !== undefined )
 				this.url = args.url;
+
+			if( args.owner !== undefined )
+				this.owner = args.owner;
 		}
 	},
 
@@ -26,7 +29,16 @@ var Ajax = Base.extend({
 			error = config.error ? config.error : function() {},
 			success = config.success ? config.success : function() {};
 
-		this.xhr.open(config.method || 'GET', config.url || this.url, true);
+		if( config.url !== undefined ){
+			if( typeof config.url === 'function' ){
+				this.url = config.url.call( this.owner || config.owner );
+			}
+			else{
+				this.url = config.url;
+			}
+		}
+
+		this.xhr.open(config.method || 'GET', this.url, true);
 		this.xhr.onreadystatechange = this.ready.bind( this, success, error );
 		if(config.headers !== false){
 			this.xhr.setRequestHeader('Accept', 'application/json');

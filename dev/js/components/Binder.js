@@ -126,7 +126,11 @@ var Binder = Base.extend({
 			var tt = "", me = this;
 
 			for( index in this.template_hash ){
-				var hash = this.template_hash[ index ], finds, domprops, finaldata = hash ? String(hash) : '\b';
+				var 
+					hash = this.template_hash[ index ], 
+					finds,
+					domprops, 
+					finaldata = hash !== undefined ? (hash === "" ? '\n' : String(hash)) : '\n';
 
 				hash = this.template_hash[ index ];
 				if( hash === undefined ){
@@ -140,10 +144,18 @@ var Binder = Base.extend({
 				};
 				
 				if( this.dom ){
-					finds = findAndReplaceDOMText( this.dom , {
-						find : index,
-						replace : finaldata
-					});
+					if(!this.templater.debug){
+						finds = findAndReplaceDOMText( this.dom , {
+							find : index,
+							replace : finaldata
+						});
+					}
+					if(this.templater.debug){
+						finds = this.findDoms(this.dom, {
+							find: index,
+							replace: finaldata
+						});
+					}
 				}
 
 				this.findInputs( this.dom );
@@ -157,6 +169,18 @@ var Binder = Base.extend({
 			}
 
 			this.trackattr( [this.dom] );
+		}
+	},
+
+	findDoms: function(dom, options) {
+		var 
+			result = [],
+			matches = findAndReplaceDOMText(dom, options).doms;
+
+		if(matches.length){
+			return matches.concat(this.findDoms(dom, options));
+		}else{
+			return result;
 		}
 	},
 

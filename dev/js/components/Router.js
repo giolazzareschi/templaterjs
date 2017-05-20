@@ -4,6 +4,8 @@ var Router = Base.extend({
 
 	before_action : undefined,
 
+	login_route: 'login',
+
 	constructor : function(){
 
 		window.addEventListener('hashchange', this.change.bind(this));
@@ -55,25 +57,54 @@ var Router = Base.extend({
 
 	entry : false,
 
+	parseRoute: function( route_searched ) {
+
+		var 
+			result, 
+			request_params = {};
+
+		for(var route in this.routes){
+			var 
+				parts = route.split('/'),
+				route_searched_parts = route_searched.split('/');
+
+			if(parts[0] === route_searched_parts[0]){
+				parts.splice(0,1);
+				route_searched_parts.splice(0,1);
+
+				parts.forEach(function(part, index){
+					request_params[part.replace(':','')] = route_searched_parts[index];
+				});
+
+				result = this.routes[route].bind(undefined, request_params);
+
+				break;
+			}
+		}
+
+		return result;
+	},
+
 	change : function(){
 
 		var 
 			last = this.getLastAccessedRoute(),
 			route = this.getCurrentRoute(),
-			body = this.routes[ route ];
+			body = this.parseRoute(route);
 
 		this.setLastAccessedRoute(route);
 
-		if(GlobalContext.useAuthToken && GlobalContext.hasAuthenticationToken()){
+		if(true){
 			if( body && route !== this.login_route )
 				body();
 			else
 				this.href('');
 		}else{
-			if(body)
+			if( route === this.login_route )
 				body();
 			else
-				this.href('');
+				this.href(this.login_route);
 		}
 	}
+
 });
