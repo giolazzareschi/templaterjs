@@ -8,7 +8,7 @@ var Router = Base.extend({
 
 	constructor : function(){
 
-		window.addEventListener('hashchange', this.change.bind(this));
+		// window.addEventListener('hashchange', this.change.bind(this));
 
 		this.base.call(this, arguments);
 	},
@@ -23,7 +23,6 @@ var Router = Base.extend({
 	},
 
 	href : function( route ){
-
 		var current_route = this.getCurrentRoute();
 
 		if( current_route === route )

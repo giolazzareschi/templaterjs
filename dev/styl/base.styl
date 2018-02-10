@@ -1,107 +1,139 @@
 *
-	padding: 0px
-	margin: 0px
-	border: 0px
-	box-sizing: border-box
-	z-index: 0
+	position relative
+	z-index 0
+	border 0
+	margin 0
+	outline 0
+	padding 0
 
-html,body
-	height: 100%
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del, dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td
+	margin 0
+	padding 0
+	border 0
+	outline 0
+	font-size 100%
+	vertical-align inherit
+	background transparent
 
 body
-	font-family: 'Exo', sans-serif
-	font-size: 14px
-	color: #333
-	font-weight 400
-	position: relative
+	line-height 1
+
+ol,ul
+	list-style none 
+
+blockquote,q
+	quotes none 
+
+blockquote:before,blockquote:after,q:before,q:after
+	content ''
+	content none 
+
+:focus
+	outline 0 
+
+ins
+	text-decoration none
+
+del
+	text-decoration line-through
+
+table
+	border-collapse collapse
+	border-spacing 0
+
+body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,form,fieldset,input,textarea,p,blockquote,th,td
+	padding 0
+	margin 0
+
+table
+	border-collapse collapse
+	border-spacing 0
+
+fieldset,img 
+	border 0
+
+address,caption,cite,code,dfn,em,var
+	font-weight normal 
+	font-style normal
+
+ol,ul
+	list-style none
+
+caption,th
+	text-align left
+
+h1,h2,h3,h4,h5,h6
+	font-weight normal
+	font-size 100%
+
+q:before,q:after
+	content '' 
+abbr,acronym 
+	border 0
 
 object
-	display: none
+	padding 0px
+	margin 0px
+	height 0px
+	display none
 
-ul,ol
-	list-style: none
+html, body
+	height 100%
+	width 100%
+
+body
+	font-family 'Titillium Web', sans-serif
+	-webkit-appearance none
+	overflow auto
 	
-a
-	color: blue
-	
-	&:visited
-		color: blue
-	&:active
-		color: #05456b
+*[hide=true], *[hide="true"]
+	display none !important
 
-.centerize
-	width: 1024px
-	margin: 0px auto
-	
-.hide, *[hide]
-	display: none
-	
-.fleft
-	float:left
+.btn
+	cursor pointer
+	border 1px solid $grey-medium
+	&.btn-send-forms
+		background-color $green-regular
+		border 1px solid $green-regular
+		color $white
+		text-shadow none
+		width auto
+		display inline-block
+		padding 10px 20px
+	&.btn-blue 
+		background-color $blue-regular
+		border 1px solid $blue-regular
+		color $white
+	&.btn-yellow 
+		background-color $yellow-light2
+		border 1px solid $yellow-light2
+		color $grey-dark
 
-.fright
-	float:right
-	
-.fclear
-	clear:both
-	
-.nopadding
-	padding: 0 !important
+.footer
+	border-top 1px solid #ddd
 
-.warn
-	font-size: 20px
-	
-	&.success
-		color: #45d
+	&.footer-main-site
+		overflow hidden
+		height 0
+		padding 0
 
-.flex-box
-	displayflex()
-	flexdirection(row)
+.header-struct
+	width 100%
+	padding 0
+	border-bottom 1px solid $grey-light
 
-.flex-column
-	flexdirection(column)
+	.menu-wrap-logo-igo
+		display none
 
-.btn-basic
-	padding: .7em 1em
-	border-radius: 3px
-	margin-right: .5em
-	box-shadow: 0px 1px 4px -1px #333
-	background-image: linear-gradient(#eee, #dfdfdf)
-	border: 1px solid #eee
-	text-shadow: 1px 1px #fff
-	font-size: .8em
-	color: #222
+	.menu-wrap-logo-igo a
+		padding-left 20px
+		displayflex()
+		alignitems(center)
+		justifycontent(center)
 
-div[appmaincenter]
-	display: flex
-	flexdirection: column
-	height: 100%
+	.center .header-btn-struct .logo-struct-client
+		flex(0 0 50px)
 
-	div[appmainheader], div[appmainfooter]
-		flex: 0 0 140px
-		z-index: 1
-		position: relative
-
-	div[appmaincontent]
-		flex: 1 0 auto
-		position: relative
-		z-index: 1
-
-	div[appmainheader]
-		z-index: 2
-		box-shadow: 0px 0px 3px -1px #000
-		background-color: #234059
-		color: #fff
-	
-	div[appmainfooter]
-		background-color: #5681A6
-		
-.base-list
-	li
-		padding 15px
-		
-		&:nth-child(even)
-			background-color $white
-		
-		&:nth-child(odd)
-			background-color $grey-very-light2
+input
+	border 1px solid #bbb
+	border-radius 3px

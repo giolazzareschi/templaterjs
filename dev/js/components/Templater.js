@@ -8,6 +8,8 @@ var Templater = Base.extend({
 
 	dom : undefined,
 
+	afterRender: undefined,
+
 	hasChild : false,
 
 	events : {},
@@ -58,12 +60,12 @@ var Templater = Base.extend({
 
 	createWatch: function() {
 		if( !window.$$templaterwachter ){
-			window.$$templaterwachter = this.templaterwachter = new TemplaterWatcher();
-		}else{
-			this.templaterwachter = window.$$templaterwachter;
+			window.$$templaterwachter = new TemplaterWatcher();
 		}
+		
+		this.templaterwachter = window.$$templaterwachter;
 
-		this.templaterwachter.register(this);
+		// this.templaterwachter.register(this);
 	},
 
 	deepfind: function( where, binder_temp, token, root_label, main_data, originalSetData ){
@@ -106,28 +108,29 @@ var Templater = Base.extend({
 						if( dom !== undefined && dom.length > 0 ){
 							for(dd in dom){
 								dom_ = dom[ dd ];
-
-								if( dom_.$$templatersolo ){
-									if( dom_.$$templatersoloowner ){
-										if( original !== false )
-											dom_.$$templatersoloowner.setAttribute(dom_.name, original);
-										else
-											dom_.$$templatersoloowner.removeAttribute(dom_.name);
+								if(dom_) {
+									if( dom_.$$templatersolo ){
+										if( dom_.$$templatersoloowner ){
+											if( original !== false )
+												dom_.$$templatersoloowner.setAttribute(dom_.name, original);
+											else
+												dom_.$$templatersoloowner.removeAttribute(dom_.name);
+										}else{
+											if( original !== false )
+												dom_.ownerElement.setAttribute(dom_.name, original);
+											else
+												dom_.ownerElement.removeAttribute(dom_.name);
+										}
 									}else{
-										if( original !== false )
-											dom_.ownerElement.setAttribute(dom_.name, original);
-										else
-											dom_.ownerElement.removeAttribute(dom_.name);
-									}
-								}else{
-									if( typeof dom_.ownerElement !== 'undefined' )
-										dom_  = dom_.ownerElement;
-									
-									if( typeof dom_.value !== 'undefined' )
-										dom_.value = original;
+										if( typeof dom_.ownerElement !== 'undefined' )
+											dom_  = dom_.ownerElement;
+										
+										if( typeof dom_.value !== 'undefined' )
+											dom_.value = original;
 
-									if( typeof dom_.textContent !== 'undefined' )
-										dom_.textContent = original;
+										if( typeof dom_.textContent !== 'undefined' )
+											dom_.textContent = original;
+									}
 								}
 							}
 						}
@@ -200,23 +203,27 @@ var Templater = Base.extend({
 			}else{
 				var inside = original_[ level ];
 				if( typeof inside !== 'undefined' ){
-					if( !inside.join && typeof inside === 'object' ){
-						var tt = track.split('.');					
-						for( var x = i; x > -1; x-- )
-							tt.splice(x,1);
-						return this.update_original_simple(tt.join('.'), inside, value);
-					}else{
-						if( !this.ispropagating ){
-							if(inside.join){
-								var s=0, new_end = value.length;
-								while(inside.length)
-									inside._pop_();
-								for(; s<new_end; s++)
-									inside._push_(value[s]);
+					if(inside === null) {
+						original_[ level ] = value; 
+					}else{	
+						if( !inside.join && typeof inside === 'object' ){
+							var tt = track.split('.');					
+							for( var x = i; x > -1; x-- )
+								tt.splice(x,1);
+							return this.update_original_simple(tt.join('.'), inside, value);
+						}else{
+							if( !this.ispropagating ){
+								if(inside.join){
+									var s=0, new_end = value.length;
+									while(inside.length)
+										inside._pop_();
+									for(; s<new_end; s++)
+										inside._push_(value[s]);
+								}
 							}
+							if(!inside.join)
+								original_[ level ] = value; 
 						}
-						if(!inside.join)
-							original_[ level ] = value; 
 					}
 				}
 			}
@@ -235,7 +242,7 @@ var Templater = Base.extend({
 		if( !this.ispropagating ){
 			this.ispropagating = false;
 			Templater.propagatingTemplateData = this.template_data;
-			this.templaterwachter.propagate(data.changed, data.to, this.type, data.originalSetData, this.__index);
+			// this.templaterwachter.propagate(data.changed, data.to, this.type, data.originalSetData, this.__index);
 		}
 	},
 
@@ -292,17 +299,31 @@ var Templater = Base.extend({
 
 	removed_data : function( index ){
 		if( this.isList && this.isList === true ){
-			var item = this.items[ index ];
+			var 
+				item = this.items[ index ],
+				tbody = this.dom.querySelector('tbody');
 			
+			if(this.dom.nodeName.toLocaleLowerCase() === "table") {
+				if(tbody) {
+					this.dom = tbody;
+				}
+			}
+
 			this.binder.dom = this.dom;
 
-			this.dom.removeChild( this.dom.children[index] );
+			var itemHasDom = this.items[String(index)].dom;
+			if(itemHasDom)
+				itemHasDom.remove();
 
 			delete this.items[String(index)];
 
 			this.items = this.reindex( this.items );
 
 			this.binder.template_main = this.binder.cloneObject( this.template_data );
+
+			if(this.dom.nodeName.toLocaleLowerCase() === "tbody") {
+				this.dom = this.dom.parentNode;
+			}
 
 			this.reactList(item, index, false);
 		}
@@ -364,6 +385,17 @@ var Templater = Base.extend({
 		return new_items;
 	},
 
+	cloneObject : function(obj){
+		if (obj === null || typeof obj !== 'object' || obj.template_data !== undefined)
+			return obj;
+
+		var temp = obj.constructor();
+		for (var key in obj)
+			temp[key] = this.cloneObject(obj[key]);
+
+		return temp;		
+	},
+
 	constructor : function( args ){
 		if( this.type === undefined ){
 			throw "Type for Class needed.";
@@ -373,7 +405,7 @@ var Templater = Base.extend({
 			if( this.template_data === undefined )
 				this.template_data = {};
 			else
-				this.template_data = Templater.cloneObject(this.template_data);
+				this.template_data = this.cloneObject(this.template_data);
 
 			if( args && args.template !== undefined && args.template !== '' )
 				this.template = args.template;
@@ -395,11 +427,6 @@ var Templater = Base.extend({
 
 			if( args && args.parent !== undefined )
 				this.parent = args.parent;
-			
-			if( this.isList )
-				if( this.template_data.items )
-					if( this.template_data.items.length )
-						this.create_items(this);
 
 			if( args && args.model !== undefined ){
 				args.model.owner = this;
@@ -409,10 +436,19 @@ var Templater = Base.extend({
 				this.model = new RequesterAjax( this.model );
 			}
 
-			if( this.template !== '' )
+			this.createWatch();
+			
+			if( this.isList ) {
 				this.update_dom();
-			else
-				this.binds();
+				if( this.template_data.items && this.template_data.items.length)
+					this.create_items(this);
+				this.appendListItems();
+			}else{
+				if(this.template)
+					this.update_dom();
+				else
+					this.binds();
+			}
 
 			this.setpushpop(this.template_data, "", "");
 
@@ -423,8 +459,6 @@ var Templater = Base.extend({
 				this.require.owner = this;
 				this.require = new Requirer( this.require );
 			}
-
-			this.createWatch();
 		}
 
 		return this;
@@ -448,9 +482,7 @@ var Templater = Base.extend({
 		}
 	},
 
-	binds : function(){
-		
-	},
+	binds : function(){},
 
 	hide : function(){
 		this.dom.classList.add("hide");
@@ -473,8 +505,29 @@ var Templater = Base.extend({
 
 		if( !rollback_dom ){
 			var dom = document.createElement('div');
-			dom.innerHTML = this.hbs();
-			this.dom = dom.firstChild;
+			if(!this.renderAsTable) {
+				dom.innerHTML = this.hbs();
+				this.dom = dom.firstChild;
+				if(this.templateHeader) {
+					var thead = document.createElement('thead');
+					thead.innerHTML = this.templateHeader;
+					this.dom.appendChild(thead);
+				}
+			}else{
+				var 
+					parentTbody = this.__parent.dom.querySelector("tbody"),
+					tbody = document.createElement('tbody'),
+					tempb = document.createElement('tbody');
+
+				if(!parentTbody) {
+					this.__parent.dom.appendChild(tbody);
+					parentTbody = tbody;
+				}
+
+				tempb.innerHTML = this.hbs();
+				this.dom = tempb.firstChild;
+				parentTbody.appendChild(this.dom);
+			}
 		}else{
 			this.dom = rollback_dom;
 			this.buffer_rollback = undefined;
@@ -484,10 +537,8 @@ var Templater = Base.extend({
 
 		this.binder.dom = this.dom;
 		this.binder.track();
-		
-		for( index in this.items ){
-			this.items[ index ].append( this.dom );
-		}
+
+		this.appendListItems();
 		
 		if( !this.require )
 			this.binds();
@@ -495,9 +546,15 @@ var Templater = Base.extend({
 		this.registerEvents();
 	},
 
+	appendListItems: function() {
+		for( index in this.items )
+			this.items[ index ].append( this.dom );
+	},
+
 	registerEvents: function() {
-		for( var p in this.events )
+		for( var p in this.events ) {
 			this.register_events(p, this.events[p]);
+		}
 	},
 
 	factory : function( proto ){
@@ -511,12 +568,22 @@ var Templater = Base.extend({
 	},
 
 	hbs : function(){
-		var tpl = (this.binder.template_memo["$$item__"] || this.binder.template_memo);
+		var 
+			template = this.template,
+			tpl = (this.binder.template_memo["$$item__"] || this.binder.template_memo);
 
-		if( typeof this.child_template !== 'undefined' )
-			tpl.modalcontent = Handlebars.compile(this.child_template.modalcontent)(tpl);
+		if( typeof this.child_template !== 'undefined' ) {
+			if(this.child_template.modal_content)
+				tpl.modal_content = Handlebars.compile(this.child_template.modal_content)(tpl);
+
+			if(this.child_template.modal_actions)
+				tpl.modal_actions = Handlebars.compile(this.child_template.modal_actions)(tpl);
+		}
 		
-		return Handlebars.compile( this.template )( tpl );
+		if(template.split === undefined && typeof template === "function")
+			template = template.call(this);
+
+		return Handlebars.compile( template )( tpl );
 	},
 
 	get_dom : function(){
@@ -543,7 +610,12 @@ var Templater = Base.extend({
 	},
 
 	register_events : function(property, fn, dom){
-		var data = property.split(' '), event = data[0], selector = data.splice(1).join(' ').trim(), dom = dom !== undefined ? dom : this.dom;
+		var 
+			data = property.split(' '), 
+			event = data[0], 
+			selector = data.splice(1).join(' ').trim(), 
+			dom = dom !== undefined ? dom : this.dom;
+
 		try{
 			if( selector ){
 				var dd = dom.querySelectorAll( selector );
@@ -565,16 +637,22 @@ var Templater = Base.extend({
 		this.receiver = receiver;
 		receiver.innerHTML = "";
 		receiver.appendChild( this.dom );
+		if(this.afterRender)
+			this.afterRender();
 	},
 
 	append : function( receiver, index ){
 		if( index === undefined ){
 			this.receiver = receiver;		
 			receiver.appendChild( this.dom );
+			if(this.afterRender)
+				this.afterRender();
 		}else{
 			var sib = receiver.children[ index ];
 			this.receiver = receiver;
 			this.receiver.insertBefore( this.dom, sib );
+			if(this.afterRender)
+				this.afterRender();
 		}
 	},
 
@@ -641,5 +719,5 @@ var Templater = Base.extend({
 			temp[key] = this.cloneObject(obj[key]);
 
 		return temp;		
-	},
+	}
 });

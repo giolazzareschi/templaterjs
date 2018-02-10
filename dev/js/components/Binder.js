@@ -228,7 +228,7 @@ var Binder = Base.extend({
 		this.template_main = this.cloneObject( this.template_data );
 
 		this.templater.react({
-			changed: index_track.replace(/({{\$\$item__.)|(}})/gi,''),
+			changed: index_track.replace(/(^.*\{|\}.*$)/g, '').replace(/\$\$item__./gi,''),
 			dom: dom,
 			from: old_value,
 			to: value
@@ -236,14 +236,23 @@ var Binder = Base.extend({
 	},
 
 	get_data : function( index_track ){
-		var indexes = index_track.replace(/({{\$\$item__.)|(}})/gi,'').split(' '), data, count=1, end, index, parent = this.templater.__parent, track;
+		var 
+			indexes = index_track.replace(/(^.*\{|\}.*$)/g, '').split("."), 
+			data, 
+			count=1, 
+			end, 
+			index, 
+			parent = this.templater.__parent, 
+			track;
+
+		indexes.splice(0,1);
 
 		indexes = indexes.filter(function(n){ return n !== "" && n !== undefined && n !== null });
 
 		end = indexes.length;
 
-		if( parent )
-			end = end - 1;
+		// if( parent )
+		// 	end = end - 1;
 
 		for(var i in indexes){
 			if( count++ <= end ){
@@ -309,7 +318,7 @@ var Binder = Base.extend({
 	findInputs : function( dom ){
 		var 
 			i=0, 
-			inputs = dom.nodeName.toUpperCase() === 'INPUT' ? [dom ] : dom.querySelectorAll('input'), 
+			inputs = dom.nodeName.toUpperCase() === 'INPUT' ? [dom] : dom.querySelectorAll('input'), 
 			qt=inputs.length;
 
 		for( ;i < qt; i++ ){

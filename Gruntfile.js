@@ -1,6 +1,17 @@
 module.exports = function(grunt) {
 
+	grunt.registerMultiTask(
+		"fingerPrintWebapp", 
+		"Generate a fingerprint to webapp update", 
+		function() {
+		    grunt.file.write('fingerprint.txt', this.data);
+		}
+	);
+
 	grunt.initConfig({
+		fingerPrintWebapp: {
+			key: +new Date
+		},
 		stylus: {
 			compile: {
 				options: {
@@ -8,7 +19,7 @@ module.exports = function(grunt) {
 					import: [__dirname + '/dev/styl/_vars']
 				},
 				files: {
-					'dev/grunt/styl.css': ['dev/styl/**/*.styl']
+					'public/build/build/styl.css': ['dev/**/*.styl']
 				}
 			}
 		},
@@ -19,7 +30,7 @@ module.exports = function(grunt) {
 			},
 			target: {
 				files: {
-					'public/build/min.css': ['dev/styl/fontello/css/*.css', 'dev/grunt/styl.css']
+					'public/build/webapp.css': ['dev/**/fontello/css/*.css', 'public/build/build/styl.css']
 				}
 			}
 		},
@@ -36,10 +47,28 @@ module.exports = function(grunt) {
 						quote_keys: false
 					},
 					sourceMap: false,
-					sourceMapName: 'public/build/min.js.map'
+					sourceMapName: 'public/build/webapp.js.map'
 				},
 				files: {
-					'public/build/min.js': ['public/build/bundle.js']
+					'public/build/webapp.js': ['public/build/webapp.js']
+				}
+			},
+			dist: {
+				options: {
+					mangle: {
+						toplevel: false
+					},
+					squeeze: {
+						dead_code: true
+					},
+					codegen: {
+						quote_keys: true
+					},
+					sourceMap: true,
+					sourceMapName: 'public/build/webapp.js.map'
+				},
+				files: {
+					'public/build/webapp.js': ['public/build/webapp.js']
 				}
 			},
 		},
@@ -52,6 +81,7 @@ module.exports = function(grunt) {
 					'dev/js/base/Handlebars.4.0.5.js',
 					'dev/js/base/findAndReplaceDOMText.js',
 					'dev/js/base/Base.js',
+					'dev/js/base/Flatpickr.js',
 					'dev/js/components/Ajax.js',
 					'dev/js/components/RequesterAjax.js',
 					'dev/js/components/RequesterFecth.js',
@@ -60,15 +90,25 @@ module.exports = function(grunt) {
 					'dev/js/components/Requirer.js',
 					'dev/js/components/Router.js',
 					'dev/js/components/StorageManager.js',
+					'dev/js/components/RepositoryManager.js',
 					'dev/js/components/Templater.js',
 					'dev/js/components/TemplaterList.js',
 					'dev/js/components/TemplaterWatcher.js',
+					'dev/js/components/PubSub.js',
+					'dev/js/components/Tracker.js',
+					'dev/js/components/MessengerWindowManager.js',
+					'dev/js/components/InputDate.js',
 					'dev/js/components/GlobalContext.js',
-					'dev/js/screens/_base/*.js',
+					'dev/js/components/ServiceBaseManager.js',
+					'dev/js/components/ServiceBaseAuth.js',
+					'dev/js/components/ServiceBase.js',
+					'dev/js/screens/_base/**/*.js',
+					'dev/js/screens/_shared/**/*.js',
+					'dev/js/screens/components/**/*.js',
 					'dev/js/screens/**/*.js',
 					'dev/js/bundle.js'
 				],
-				dest: 'public/build/bundle.js',
+				dest: 'public/build/webapp.js',
 			}
 		},
 		watch: {
@@ -77,6 +117,7 @@ module.exports = function(grunt) {
 					'dev/js/base/Handlebars.4.0.5.js',
 					'dev/js/base/findAndReplaceDOMText.js',
 					'dev/js/base/Base.js',
+					'dev/js/base/Flatpickr.js',
 					'dev/js/components/Ajax.js',
 					'dev/js/components/RequesterAjax.js',
 					'dev/js/components/RequesterFecth.js',
@@ -85,22 +126,32 @@ module.exports = function(grunt) {
 					'dev/js/components/Requirer.js',
 					'dev/js/components/Router.js',
 					'dev/js/components/StorageManager.js',
+					'dev/js/components/RepositoryManager.js',
 					'dev/js/components/Templater.js',
 					'dev/js/components/TemplaterList.js',
 					'dev/js/components/TemplaterWatcher.js',
+					'dev/js/components/PubSub.js',
+					'dev/js/components/Tracker.js',
+					'dev/js/components/MessengerWindowManager.js',
+					'dev/js/components/InputDate.js',
 					'dev/js/components/GlobalContext.js',
-					'dev/js/screens/_base/*.js',
+					'dev/js/components/ServiceBaseManager.js',
+					'dev/js/components/ServiceBaseAuth.js',
+					'dev/js/components/ServiceBase.js',
+					'dev/js/screens/_base/**/*.js',
+					'dev/js/screens/_shared/**/*.js',
+					'dev/js/screens/components/**/*.js',
 					'dev/js/screens/**/*.js',
 					'dev/js/bundle.js'
 				],
-				tasks : ['concat:dev'],
+				tasks : ['concat:dev','fingerPrintWebapp'],
 				options: {
 					spawn: false,
 				}
 			},
 			css: {
-				files: ['dev/styl/**/*.styl'],
-				tasks: ['stylus', 'cssmin'],
+				files: ['dev/**/*.styl'],
+				tasks: ['stylus', 'cssmin','fingerPrintWebapp'],
 				options: {
 					spawn: false,
 				},
@@ -117,7 +168,7 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-copy');
 	grunt.loadNpmTasks('grunt-gzip');
 
-	grunt.registerTask('default', ['stylus', 'cssmin', 'uglify:dist', 'compress']);
-	grunt.registerTask('dev', ['stylus', 'cssmin', 'concat:dev', 'uglify:dev']);
+	grunt.registerTask('default', ['stylus','cssmin','concat:dev','uglify:dist','fingerPrintWebapp']);
+	grunt.registerTask('dev', ['stylus','cssmin','concat:dev','fingerPrintWebapp']);
 	grunt.registerTask('wdev', ['watch']);
 };

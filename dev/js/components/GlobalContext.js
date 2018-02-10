@@ -3,29 +3,15 @@ var GlobalContext = Templater.extend({
 	type: 'GlobalContext'
 
 },{
-	PizzariaData: {},
+	env: window,
 
-	Cart: {},
-
-	Workspace: {},
-
-	UserCoordenates: {},
-
-	authenticationHash: 'igomanagerauth',
+	authenticationHash: 'igocredentialstoken',
 
 	StorageManager: new StorageManager(),
 
 	Router: new Router(),
-
-	url_prefix: 'https://localhost/',
-
-	api_prefix: 'https://localhost/api/',
-
-	base_api: 'https://localhost/igoapi/',
-
-	base_url: function(route) {
-		return GlobalContext.base_api + route;
-	},
+	
+	PubSub: new PubSub(),
 
 	getStorageData: function(hash) {
 		return this.StorageManager.get(hash);
@@ -49,7 +35,8 @@ var GlobalContext = Templater.extend({
 
 	restartApp: function() {
 		this.clearAuthenticationToken();
-		this.Router.href('');
+		if(this.userRouter)
+			this.Router.href('');
 	},
 
 	navigate: function(route) {
@@ -68,24 +55,47 @@ var GlobalContext = Templater.extend({
 		this.StorageManager.set(this.authenticationHash, auth_token);
 	},
 
-	setUserCoordenates: function(coords) {
-		GlobalContext.UserCoordenates.latitude = coords.latitude;
-		GlobalContext.UserCoordenates.longitude = coords.longitude;
-		GlobalContext.StorageManager.set('coord_latitude', coords.latitude);
-		GlobalContext.StorageManager.set('coord_longitude', coords.longitude);
-	},
-
-	getUserCoordenates: function() {
+	formatDate: function(created_at, show_time) {
 		var
-			latitude = GlobalContext.StorageManager.get('coord_latitude'),
-			longitude = GlobalContext.StorageManager.get('coord_longitude');
-		return {
-			latitude: latitude,
-			longitude: longitude
-		}
+			date = new Date(created_at),
+			day = GlobalContext.pad(date.getDate()),
+			month = GlobalContext.pad(date.getMonth()+1),
+			year = date.getFullYear(),
+			hour = GlobalContext.pad(date.getHours()),
+			minutes = GlobalContext.pad(date.getMinutes()),
+			time = show_time ? ' ' + hour + ':' + minutes : '';
+
+		return day+'/'+month+'/'+year + time;
 	},
 
-	getApiRoute: function(route) {
-		return GlobalContext.api_prefix + route;
+	mysqlDate: function(date) {
+		return date.getFullYear()+'-'+
+				this.pad(date.getMonth()+1)+'-'+
+				this.pad(date.getUTCDate());
+	},
+
+	formatTime: function(created_at) {
+		var
+			date = new Date(created_at),
+			hour = GlobalContext.pad(date.getHours()),
+			minutes = GlobalContext.pad(date.getMinutes());
+
+		return hour + ':' + minutes;
+	},
+
+	pad: function(number) {
+		var zeros = "00";
+		return (zeros+number).slice(-zeros.length);
+	},
+
+	formatMoney: function(num) {
+		return GlobalContext.round(num ? num : 0).toFixed(2).replace('.',',');
+	},
+	
+	round: function(num, precision) {
+		if(precision)
+			return Number(Math.round(num+'e2')+'e-2').toFixed(precision);
+		else
+			return Number(Math.round(num+'e2')+'e-2');
 	}
 });

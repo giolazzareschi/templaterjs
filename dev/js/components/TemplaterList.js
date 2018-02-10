@@ -11,16 +11,26 @@ var TemplaterList = Templater.extend({
 		return length;
 	},
 
-	add : function( data, index ){
+	push : function( data, index ){
+		this.push_(data, index);
 
-		this.template_data.items.push.call(this, data, index);
+		return this.template_data.items;
+	},
+
+	add : function( data, index ){
+		this.push_(data, index);
+
+		return this.template_data.items;
+	},
+
+	pop : function( index ){
+		this.pop_(index);
 
 		return this.template_data.items;
 	},
 
 	remove : function( index ){
-
-		this.template_data.items.pop.call(this, index);
+		this.pop_(index);
 
 		return this.template_data.items;
 	},
