@@ -1,0 +1,66 @@
+.Prices
+  padding 5em 0 5em 0
+  position relative
+  background-color #F5F6FA
+  color #555
+
+  .container
+    text-align center
+
+  .mukta-title
+    position relative
+    text-align center
+    color #f52e41
+    font-size 3em
+    margin-bottom 0
+    margin-top 0
+
+  h3
+    width 50%
+    font-weight 400
+    margin 0 auto
+
+  .price-box
+    displayflex()
+    font-weight 900
+    font-size 1.5em
+    justifycontent(center)
+
+    div
+      flex(0)
+      displayflex()
+
+      &.currency
+        alignitems(center)
+
+      &.decimal
+        alignitems(center)
+        padding 0 0 0 .15em
+        font-size 2em
+        line-height 1.05em
+
+      &.rest
+        alignitems(center)
+        padding-left .125em
+        font-size 1.5em
+        padding-top .25em
+
+  .price-period
+    span
+      font-weight 400
+
+@media screen and (max-width 1024px)
+  .Prices
+    font-size .75em
+    min-height 350px
+
+@media screen and (max-width 650px)
+  .Prices
+    font-size .75em
+
+    .mukta
+      line-height 1em
+
+    h3
+      width 100%
+      font-size 1.25em

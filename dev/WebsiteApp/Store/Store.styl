@@ -1,0 +1,55 @@
+.Store
+  padding 7em 0
+  position relative
+  min-height 600px
+  background url(./images/appstore.png) no-repeat
+  background-size 65% auto
+  background-position right center
+
+  &.mobile
+    background-image none
+
+  .store-grid
+    displayflex()
+    flexdirection(column)
+    alignitems(flex-start)
+
+  .store-grid-left
+    width 40%
+    background-color rgba(255,255,255,.5)
+
+    h1
+      font-size 3.5em
+      line-height 1.25em
+      color #222
+
+@media screen and (max-width 1024px)
+  .Store
+    font-size .75em
+    min-height 350px
+
+    .store-grid-left
+      color #222    
+
+      h1
+        font-size 2.5em
+
+@media screen and (max-width 650px)
+  .Store
+    padding .25em
+    font-size 1em
+    min-height 0
+    background-size 120% auto
+    background-position center center
+    
+    .store-grid-left
+      background-color rgba(255,255,255,.75)
+      width 100%
+
+      h1
+        font-size 1.745em
+
+    .mobile-bg
+      img
+        display block
+        width 100%

@@ -1,0 +1,126 @@
+.Header
+
+  .header
+    padding 1em 0
+    box-shadow 0 3px 6px rgba(0,0,0,.16)
+    z-index 1
+  
+  .header-container
+    displayflex()
+    flexdirection(row)
+
+    .logo
+      flex(0)
+
+      img
+        display block
+    
+    &.mobile
+      flexdirection(row)
+
+  .menu-content-mobile
+    displayflex()
+    flex(1)
+    alignitems(flex-end)
+    justifycontent(flex-end)
+
+  .menu-content
+    flex(1)
+    displayflex()
+    alignitems(center)
+    justifycontent(flex-end)
+
+    a
+      displayflex()
+      margin-left 2.25em
+      color #F52E41
+      text-decoration none
+
+      &.menu-enter
+        border 1px solid #F52E41
+        padding .675em 2.25em
+        border-radius 50px
+        box-shadow 0px 6px 12px rgba(205,205,205,.35)
+        cursor pointer
+
+    .menu-enter-mobile
+      display none
+
+  .mobile-menu-wrap
+    display none
+
+@media screen and (max-width 1024px)
+  .Header
+    .header-container
+      alignitems(center)
+      flexdirection(column)
+      font-size .75em
+
+      .menu-content
+        padding-top 1em
+
+@media screen and (max-width 650px)
+  .Header
+
+    .mobile-menu-wrap
+      display block
+      position fixed
+      top 0
+      left 0
+      width 100%
+      height 100%
+      background-color rgba(255,255,255,1)
+      z-index 999
+      transform translateY(-100%)
+      transition all .25s ease-out
+
+      &.open
+        transform translateY(0%)
+
+      .mobile-menu-head
+        displayflex()
+        padding 1.25em 2em
+
+        .logo
+          img
+            display inline-block
+            width 180px
+
+      .mobile-menu-list
+        padding 2em
+        displayflex()
+        flexdirection(column)
+
+        a
+          padding 1.25em 0
+          font-size 1.15em
+          text-decoration none
+          color #F52E41
+          border-bottom 1px solid #efefef
+          
+          &.menu-enter-mobile
+            span
+              border 1px solid #F52E41
+              padding .675em 2.25em
+              border-radius 50px
+              box-shadow 0px 6px 12px rgba(205,205,205,.35)
+              cursor pointer
+              display inline-block
+
+    .header-container
+      text-align center
+      
+      .logo 
+        img
+          display inline-block
+          width 160px
+        
+    .menu-content
+      .menu-enter-mobile
+        display inline-block
+
+      .menu-enter
+          display none
+
+      #RedActionButton
+        display none

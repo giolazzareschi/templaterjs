@@ -9,5 +9,6 @@ passenger.3000.log
 passenger.3000.pid
 passenger.3000.pid.lock
 npm-debug.log
+public/
 public/build/
 dev/grunt/

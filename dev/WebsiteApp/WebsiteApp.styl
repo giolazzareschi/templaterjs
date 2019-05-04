@@ -1,0 +1,14 @@
+.WebsiteApp
+  position relative
+  displayflex()
+  flexdirection(column)
+  width 100%
+  flex 1
+
+  *
+    &[hide="true"], &[hide=true]
+      display none !important
+
+@media screen and (max-width 650px)
+  .WebsiteApp
+    overflow overlay
