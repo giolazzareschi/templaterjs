@@ -7,25 +7,14 @@ Templater.register("Header", {
   },
 
   binds: function() {
-    this.renderRedActionButton();
+    this.createLogobrand();
     this.renderByWindowSize(window.innerWidth);
     this.listenWindowSizeChange();
   },
 
-  renderRedActionButton: function() {
-    this.RedActionButton = Templater.create("RedActionButton", {
-      template_data: {
-        text: "Agendar demonstração"
-      }
-    });
-    this.RedActionButton.append(this.elements.RedActionButton);
-
-    this.RedActionButtonMobile = Templater.create("RedActionButton", {
-      template_data: {
-        text: "Agendar demonstração"
-      }
-    });
-    this.RedActionButtonMobile.append(this.elements.RedActionButtonMobile);
+  createLogobrand: function() {
+    this.Logobrand = Templater.create("Logobrand");
+    this.Logobrand.append(this.elements.LogobrandDesktop);
   },
 
   listenWindowSizeChange: function() {
@@ -100,9 +89,7 @@ Templater.register("Header", {
       
       '<div id="MobileMenu" class="mobile-menu-wrap">'+
         '<div class="mobile-menu-head">'+
-          '<div class="logo">'+
-            '<img src="./images/logo.svg" />'+
-          '</div>'+
+          '<div id="LogobrandMenu" class="logo"></div>'+
           '<div class="menu-content close-mobile">'+
             '<img src="./images/close.svg" />'+
           '</div>'+
@@ -120,25 +107,13 @@ Templater.register("Header", {
 
       '<div class="container" hide={{hideDesktopVersion}}>'+
         '<div class="header-container">'+
-          '<div class="logo">'+
-            '<img src="./images/logo.svg" />'+
-          '</div>'+
-          '<div class="menu-content">'+
-            '<a href="#Prices" class="menu-item">Preços</a>'+
-            '<a href="#Features" class="menu-item">Funcionalidades</a>'+
-            '<a href="https://blog.igopizzas.com/blog" target="_blank" class="menu-item">Blog</a>'+
-            '<a href="#" class="menu-item menu-enter">Entrar</a>'+
-            '<a href="#" class="menu-item menu-enter-mobile">Entrar</a>'+
-            '<a href="#" id="RedActionButton"></a>'+
-          '</div>'+
+          '<div id="LogobrandDesktop" class="logo"></div>'+
         '</div>'+
       '</div>'+
 
       '<div class="container" hide={{hideMobileVersion}}>'+
         '<div class="header-container mobile">'+
-          '<div class="logo">'+
-            '<img src="./images/logo.svg" />'+
-          '</div>'+
+          '<div id="LogobrandMobile" class="logo"></div>'+
           '<div class="menu-content-mobile">'+
             '<img src="./images/sandwich.svg" />'+
           '</div>'+

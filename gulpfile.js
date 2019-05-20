@@ -10,11 +10,14 @@ uglify = require('gulp-uglify'),
 rename = require('gulp-rename'),
 fs = require('fs'),
 replace = require('gulp-replace'),
+browserSync = require('browser-sync').create(),
+reload      = browserSync.reload,
 
 outputFile = 'website-bundle',
 publicFolder = __dirname + '/public',
 stylVars = __dirname + '/templaterjs/dev/styl/_vars.styl',
 stylFiles = [
+  './dev/vendor/*.css',
   './dev/vendor/*.styl',
   './dev/**/*.styl'
 ],
@@ -217,4 +220,16 @@ gulp.task('prod',
     "revision-prod",
     'replace-index'
   )
+);
+
+gulp.task('server',
+  function() {
+    browserSync.init({
+        server: "./public/"
+    });
+
+    gulp.watch(htmlIndexFile, gulp.series('replace-index')).on("change", reload);;
+    gulp.watch(stylFiles, gulp.series('clean-styles', 'copy-files', gulp.parallel('styl', 'revision-dev'))).on("change", reload);
+    gulp.watch(jsFiles, gulp.series('clean-scripts', 'copy-files', gulp.parallel('scripts', 'revision-dev'))).on("change", reload);
+  }
 );

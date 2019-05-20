@@ -11,29 +11,11 @@ Templater.register("WebsiteApp", {
     this.Banner = Templater.create("Banner");
     this.Banner.append(this.dom);
 
-    this.Customers = Templater.create("Customers");
-    this.Customers.append(this.dom);
+    this.HelloWorld = Templater.create("HelloWorld");
+    this.HelloWorld.append(this.dom);
 
-    this.Store = Templater.create("Store");
-    this.Store.append(this.dom);
-
-    this.QuickInfo = Templater.create("QuickInfo");
-    this.QuickInfo.append(this.dom);
-
-    this.Features = Templater.create("Features");
-    this.Features.append(this.dom);
-
-    this.Prices = Templater.create("Prices");
-    this.Prices.append(this.dom);
-
-    this.Testimony = Templater.create("Testimony");
-    this.Testimony.append(this.dom);
-
-    this.Trynow = Templater.create("Trynow");
-    this.Trynow.append(this.dom);
-
-    this.Footer = Templater.create("Footer");
-    this.Footer.append(this.dom);
+    this.Variables = Templater.create("Variables");
+    this.Variables.append(this.dom);
   },
 
   registerPubSub: function() {

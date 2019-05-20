@@ -685,19 +685,24 @@ var Templater = Base.extend({
 		tpl = (this.binder.template_memo["$$item__"] || this.binder.template_memo),
 		result;
 
-		if(typeof this.child_template !== 'undefined') {
-			if(typeof this.child_template === 'string') {
-				tpl.child_template = compile(this.child_template)(tpl);
-			} else {
-				if(this.child_template.modal_content)
-					tpl.modal_content = compile(this.child_template.modal_content)(tpl);
-				if(this.child_template.modal_actions)
-					tpl.modal_actions = compile(this.child_template.modal_actions)(tpl);
-			}
-		}
+    for (var property in this) {
+      var
+      split = property.toString().split("_"),
+      isTemplate = split[split.length - 1].toLowerCase() === 'template';
+
+      if (isTemplate) {
+        var
+        child_template = this[property];
+
+        if (typeof child_template === 'string') {
+          tpl[property] = compile(child_template)(tpl);
+        }
+      }
+    }
 		
-		if(template.split === undefined && typeof template === "function")
-			template = template.call(this);
+		if (template.split === undefined && typeof template === "function") {
+      template = template.call(this);
+    }
 
 		// result = this.TemplateCompilerEngine.compile(template, tpl);
 		result = compile(template)(tpl);

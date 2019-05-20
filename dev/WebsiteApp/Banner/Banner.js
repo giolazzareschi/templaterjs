@@ -1,12 +1,6 @@
 Templater.register("Banner", {
 
   binds: function() {
-    this.RedActionButton = Templater.create("RedActionButton", {
-      template_data: {
-        text: "Faça seu teste grátis"
-      }
-    });
-    this.RedActionButton.append(this.elements.RedActionButtonBanner);
   },
 
   template: 
@@ -14,25 +8,11 @@ Templater.register("Banner", {
     '<div class="main-banner">'+
       '<div class="container">'+
         '<div class="container-banner">'+
-          '<div class="container-banner-left">'+
-            '<h1 class="mukta">Sua pizzaria vende mais com a iGo.</h1>'+
-            '<h4>Simplifique a gestão operacional de sua pizzaria e foque no que realmente importa: a satisfação do seu cliente.</h4>'+
-            '<div class="mobile-gif">'+
-              '<img src="./images/banner.gif" />'+
-            '</div>'+
-            '<div id="RedActionButtonBanner"></div>'+
-          '</div>'+
-        '</div>'+
-      '</div>'+
-      '<div class="banner-arrow-wrap">'+
-        '<img src="./images/arrow.png" />'+
-      '</div>'+
-      '<div class="banner-container">'+
-        '<div class="banner-container-float">'+
-          '<img src="./images/banner.gif" />'+
-          '<div class="seconds">'+
-            '<div class="seconds">O pedido acima foi feito em 19 segundos.</div>'+
-          '</div>'+
+          
+          '<h1>js framework<br/>focused on code maintance</h1>'+
+          '<h2>The purpose is to be easy to maintain a project as long as it has been developed.</h2>'+
+
+          '<a class="btn-templater" href="#HelloWorld">Hello world! example</a>'+
         '</div>'+
       '</div>'+
     '</div>'+

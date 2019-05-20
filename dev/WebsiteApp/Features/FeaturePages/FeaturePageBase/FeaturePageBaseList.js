@@ -1,1 +1,0 @@
-Templater.register("FeaturePageBaseList");

@@ -5,7 +5,7 @@
     "puppeteer": "^1.15.0"
   },
   "devDependencies": {
-    "browser-sync": "^2.26.3",
+    "browser-sync": "^2.26.5",
     "compression": "^1.7.3",
     "crypto": "^1.0.1",
     "gulp": "^4.0.1",
